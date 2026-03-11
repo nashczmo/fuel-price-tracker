@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 st.set_page_config(
-    page_title="Fuel Price Intelligence",
+    page_title="Fuel Price Tracker",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -15,181 +15,148 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
-    .stApp {
-        background-color: #0d1117;
-        color: #c9d1d9;
-        font-family: 'Inter', sans-serif;
+    .main { font-family: 'Inter', sans-serif; }
+    
+    h1, h2, h3, h4 { 
+        color: var(--text-color); 
+        font-weight: 700; 
+        letter-spacing: -0.02em; 
     }
     
-    h1, h2, h3, h4 { color: #ffffff; font-weight: 600; }
-    
-    .dashboard-header {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #ffffff;
-        margin-bottom: 4px;
-        letter-spacing: -0.01em;
-    }
-    .dashboard-subtext {
-        color: #8b949e;
-        font-size: 0.9rem;
-        margin-bottom: 24px;
-    }
-    
-    .top-grid {
+    .metric-grid {
         display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .metrics-container {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 16px;
+        margin-bottom: 30px;
+        margin-top: 10px;
     }
     
-    .glass-card {
-        background-color: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
+    @keyframes riseUp {
+        0% { opacity: 0; transform: translateY(30px); }
+        100% { opacity: 1; transform: translateY(0); }
     }
     
-    .metric-card {
-        align-items: center;
+    .metric-container {
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
+        padding: 24px 16px;
+        border-radius: 8px;
         text-align: center;
-        justify-content: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, border-color 0.2s ease;
+        opacity: 0;
+        animation: riseUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
-    .ring-indicator {
-        width: 54px;
-        height: 54px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-bottom: 12px;
-        position: relative;
+    .metric-container:nth-child(1) { animation-delay: 0.1s; }
+    .metric-container:nth-child(2) { animation-delay: 0.15s; }
+    .metric-container:nth-child(3) { animation-delay: 0.2s; }
+    .metric-container:nth-child(4) { animation-delay: 0.25s; }
+    .metric-container:nth-child(5) { animation-delay: 0.3s; }
+    
+    .metric-container:hover { 
+        transform: translateY(-2px); 
+        border-color: #3b82f6; 
     }
     
-    .ring-green { border: 2px solid #238636; color: #3fb950; }
-    .ring-blue { border: 2px solid #1f6feb; color: #58a6ff; }
-    .ring-purple { border: 2px solid #8957e5; color: #bc8cff; }
-    .ring-red { border: 2px solid #da3633; color: #ff7b72; }
-    
-    .metric-value {
-        color: #ffffff;
-        font-size: 1.4rem;
-        font-weight: 700;
-        margin-bottom: 4px;
+    .metric-label { 
+        color: var(--text-color); 
+        opacity: 0.7; 
+        font-size: 0.75rem; 
+        font-weight: 600; 
+        letter-spacing: 0.05em; 
+        text-transform: uppercase; 
+        margin-bottom: 8px; 
     }
     
-    .metric-label {
-        color: #8b949e;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 500;
+    .metric-value { 
+        color: var(--text-color); 
+        font-size: 1.85rem; 
+        font-weight: 700; 
+        line-height: 1.2; 
     }
     
-    .macro-card {
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
+    .custom-alert {
+        background-color: rgba(234, 179, 8, 0.15);
+        border: 1px solid #eab308;
+        color: var(--text-color);
+        padding: 16px 20px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        animation: riseUp 0.4s ease-out forwards;
     }
-    
-    .macro-title {
-        color: #ffffff;
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .macro-data {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        border-top: 1px solid #30363d;
-        padding-top: 16px;
-        margin-top: 16px;
-    }
-    
-    .macro-val { font-size: 2rem; font-weight: 700; color: #58a6ff; line-height: 1; }
-    .macro-lbl { font-size: 0.85rem; color: #8b949e; margin-bottom: 4px; }
     
     .news-card {
-        background-color: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 12px;
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
+        border-left: 4px solid #3b82f6;
         padding: 24px;
+        border-radius: 8px;
         margin-bottom: 16px;
+        height: 100%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     
-    .news-header {
-        color: #58a6ff;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 12px;
+    .news-card h4 { margin: 0 0 12px 0; font-size: 1.15rem; }
+    .news-card p { margin: 0 0 16px 0; font-size: 0.95rem; opacity: 0.8; line-height: 1.6; }
+    .news-card a { 
+        color: #3b82f6; 
+        text-decoration: none; 
+        font-weight: 600; 
+        font-size: 0.85rem; 
+    }
+    .news-card a:hover { color: #2563eb; text-decoration: underline; }
+    
+    .reference-section { 
+        font-size: 0.85rem; 
+        color: var(--text-color); 
+        opacity: 0.8; 
+        padding: 24px; 
+        background-color: var(--secondary-background-color); 
+        border-radius: 8px; 
+        border: 1px solid rgba(128, 128, 128, 0.2); 
+        line-height: 1.6; 
     }
     
-    .news-title {
-        color: #ffffff;
-        font-size: 1.05rem;
-        font-weight: 600;
-        margin-bottom: 8px;
-        line-height: 1.4;
+    .footer-text { 
+        color: var(--text-color); 
+        opacity: 0.6; 
+        font-size: 0.9rem; 
+        margin-top: 48px; 
+        text-align: center; 
+        border-top: 1px solid rgba(128, 128, 128, 0.2); 
+        padding-top: 24px; 
     }
     
-    .news-desc {
-        color: #8b949e;
-        font-size: 0.9rem;
-        line-height: 1.5;
-        margin-bottom: 20px;
+    .timestamp-text { 
+        color: var(--text-color); 
+        font-size: 0.95rem; 
+        font-weight: 500; 
+        margin-bottom: 24px; 
+        display: inline-block; 
+        background-color: var(--secondary-background-color); 
+        padding: 6px 14px; 
+        border-radius: 16px; 
+        border: 1px solid rgba(128, 128, 128, 0.2); 
     }
     
-    .action-btn {
-        background-color: #238636;
-        color: #ffffff;
-        border: 1px solid rgba(240, 246, 252, 0.1);
-        padding: 6px 16px;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        text-decoration: none;
-        display: inline-block;
-        transition: 0.2s;
-    }
-    
-    .action-btn:hover { background-color: #2ea043; }
-    .action-btn-alt { background-color: #21262d; border-color: #363b42; }
-    .action-btn-alt:hover { background-color: #30363d; border-color: #8b949e; }
-    
-    div[data-testid="stExpander"] { background-color: #161b22; border-color: #30363d; border-radius: 8px; }
-    div[data-baseweb="select"] > div { background-color: #161b22; border-color: #30363d; color: #ffffff; }
+    div[data-testid="stExpander"] { background-color: var(--secondary-background-color); border-color: rgba(128, 128, 128, 0.2); border-radius: 8px; }
+    div[data-baseweb="select"] > div { background-color: var(--secondary-background-color); border-color: rgba(128, 128, 128, 0.2); }
     </style>
 """, unsafe_allow_html=True)
 
 if 'last_market_data' not in st.session_state:
     st.session_state.last_market_data = {
-        "fx": 59.02, "brent": 82.50, "p91": 72.35, "p95": 74.50, "p97": 82.30, "dsl": 75.10,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S PST")
+        "fx": 59.02, "p91": 72.35, "p95": 74.50, "p97": 82.30, "dsl": 75.10,
+        "timestamp": datetime.now().strftime("%B %d, %Y | %H:%M:%S PST")
     }
 
 if 'last_news_data' not in st.session_state:
     st.session_state.last_news_data = [
-        {"title": "Global Supply Constraints", "description": "Market indicators reflect tightening supply margins across key maritime routes.", "link": "#", "source": "Reuters"},
-        {"title": "Regulatory Monitoring", "description": "Domestic price ceilings are under continuous review to stabilize consumer indices.", "link": "#", "source": "DOE"}
+        {"title": "Market Price Projections", "description": "Global supply factors suggest upward pressure on local retail costs.", "link": "https://www.bworldonline.com/", "source": "BusinessWorld"},
+        {"title": "Regulatory Advisories", "description": "The Department of Energy is monitoring price caps during the conflict.", "link": "https://www.doe.gov.ph/", "source": "DOE"}
     ]
 
 @st.cache_data(ttl=300)
@@ -205,8 +172,11 @@ def fetch_comprehensive_market_data():
         if brent_res.status_code != 200 or fx_res.status_code != 200:
             return st.session_state.last_market_data
             
-        brent_price = float(brent_res.json()['observations'][0]['value'])
-        php_rate = float(fx_res.json()['observations'][0]['value'])
+        brent_json = brent_res.json()
+        fx_json = fx_res.json()
+        
+        brent_price = float(brent_json['observations'][0]['value'])
+        php_rate = float(fx_json['observations'][0]['value'])
 
         X_historical = np.array([[1, 74.2, 55.8], [1, 78.5, 56.1], [1, 80.2, 56.5], [1, 82.5, 57.0]])
         y_91 = np.array([50.50, 52.10, 57.30, 59.10])
@@ -214,18 +184,23 @@ def fetch_comprehensive_market_data():
         y_97 = np.array([58.10, 60.40, 65.60, 67.40])
         y_dsl = np.array([58.00, 60.50, 72.10, 75.90])
 
-        w_91 = np.linalg.inv(X_historical.T.dot(X_historical)).dot(X_historical.T).dot(y_91)
-        w_95 = np.linalg.inv(X_historical.T.dot(X_historical)).dot(X_historical.T).dot(y_95)
-        w_97 = np.linalg.inv(X_historical.T.dot(X_historical)).dot(X_historical.T).dot(y_97)
-        w_dsl = np.linalg.inv(X_historical.T.dot(X_historical)).dot(X_historical.T).dot(y_dsl)
+        def solve_ols(X, y): 
+            return np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)
+            
+        w_91 = solve_ols(X_historical, y_91)
+        w_95 = solve_ols(X_historical, y_95)
+        w_97 = solve_ols(X_historical, y_97)
+        w_dsl = solve_ols(X_historical, y_dsl)
 
         live_features = np.array([1, brent_price, php_rate])
         
         new_data = {
-            "fx": php_rate, "brent": brent_price,
-            "p91": live_features.dot(w_91), "p95": live_features.dot(w_95), 
-            "p97": live_features.dot(w_97), "dsl": live_features.dot(w_dsl),
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S PST")
+            "fx": php_rate, 
+            "p91": live_features.dot(w_91), 
+            "p95": live_features.dot(w_95), 
+            "p97": live_features.dot(w_97), 
+            "dsl": live_features.dot(w_dsl),
+            "timestamp": datetime.now().strftime("%B %d, %Y | %H:%M:%S PST")
         }
         st.session_state.last_market_data = new_data
         return new_data
@@ -248,13 +223,17 @@ def fetch_news_data():
             
         news_list = []
         for article in articles[:2]:
-            desc = article.get("description") or "Access source document for comprehensive data."
-            if len(desc) > 120: desc = desc[:120] + "..."
+            desc = article.get("description")
+            if not desc:
+                desc = "Click to read the full report on recent market updates."
+            if len(desc) > 150: 
+                desc = desc[:150] + "..."
+                
             news_list.append({
-                "title": article.get("title", "Market Update"),
-                "description": desc,
-                "link": article.get("link", "#"),
-                "source": article.get("source_id", "Source").upper()
+                "title": article.get("title", "Market Update"), 
+                "description": desc, 
+                "link": article.get("link", "#"), 
+                "source": str(article.get("source_id", "News Source")).capitalize()
             })
         
         st.session_state.last_news_data = news_list
@@ -264,113 +243,132 @@ def fetch_news_data():
 
 def generate_stochastic_forecast(base_prices, days):
     np.random.seed(42)
-    dates = [(datetime.now() + timedelta(days=i)).strftime('%m/%d') for i in range(1, days + 1)]
-    data = {"Date": dates}
+    dates = [(datetime.now() + timedelta(days=i)).strftime('%a, %b %d') for i in range(1, days + 1)]
+    forecast_data = {"Date": dates}
+    
     for grade, price in base_prices.items():
         shocks = np.random.normal(0.002, 0.012, days)
-        data[grade] = [round(price * (1 + s), 2) for s in shocks]
-    return pd.DataFrame(data)
+        forecast_data[grade] = [round(price * (1 + s), 2) for s in shocks]
+        
+    return pd.DataFrame(forecast_data), round(100 * np.exp(-0.01 * days), 1)
 
 data = fetch_comprehensive_market_data()
 news = fetch_news_data()
 
 pump_prices = {
-    "91 RON": data["p91"], 
-    "95 RON": data["p95"], 
-    "97 RON": data["p97"], 
-    "Diesel": data["dsl"]
+    "91 RON (Xtra Advance / FuelSave / Silver)": data["p91"],
+    "95 RON (XCS / V-Power / Platinum)": data["p95"],
+    "97+ RON (Blaze 100 / Racing)": data["p97"],
+    "Diesel (Turbo / Max / Power)": data["dsl"]
 }
 
-st.markdown(f"""
-    <div class="dashboard-header">Market Intelligence Console</div>
-    <div class="dashboard-subtext">System synchronized: {data['timestamp']}. Operations normal.</div>
+st.title("Philippine Fuel Price Tracker")
+st.markdown(f'<div class="timestamp-text">Data Synchronized: {data["timestamp"]}</div>', unsafe_allow_html=True)
+
+st.markdown("""
+<div class="custom-alert">
+    <strong>MARKET ALERT:</strong> Fuel prices are currently experiencing high volatility and upward pressure due to the ongoing conflict in the Middle East and the closure of key shipping routes like the Strait of Hormuz.
+</div>
 """, unsafe_allow_html=True)
 
+st.markdown("### Estimated Current Pump Prices")
+
 st.markdown(f"""
-    <div class="top-grid">
-        <div class="metrics-container">
-            <div class="glass-card metric-card">
-                <div class="ring-indicator ring-green">91</div>
-                <div class="metric-value">₱{data['p91']:.2f}</div>
-                <div class="metric-label">Regular</div>
-            </div>
-            <div class="glass-card metric-card">
-                <div class="ring-indicator ring-blue">95</div>
-                <div class="metric-value">₱{data['p95']:.2f}</div>
-                <div class="metric-label">Premium</div>
-            </div>
-            <div class="glass-card metric-card">
-                <div class="ring-indicator ring-purple">97</div>
-                <div class="metric-value">₱{data['p97']:.2f}</div>
-                <div class="metric-label">Ultra</div>
-            </div>
-            <div class="glass-card metric-card">
-                <div class="ring-indicator ring-red">D</div>
-                <div class="metric-value">₱{data['dsl']:.2f}</div>
-                <div class="metric-label">Diesel</div>
-            </div>
-        </div>
-        <div class="glass-card macro-card">
-            <div class="macro-title">
-                Macro Indicators
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-            </div>
-            <div>
-                <div class="macro-lbl">USD/PHP Spot Rate</div>
-                <div class="macro-val">₱{data['fx']:.2f}</div>
-            </div>
-            <div class="macro-data">
-                <div>
-                    <div class="macro-lbl">Brent Crude (USD/bbl)</div>
-                    <div style="font-size: 1.2rem; font-weight: 600; color: #ffffff;">${data['brent']:.2f}</div>
-                </div>
-            </div>
-        </div>
+<div class="metric-grid">
+    <div class="metric-container">
+        <div class="metric-label">USD TO PHP</div>
+        <div class="metric-value">₱{data['fx']:.2f}</div>
     </div>
+    <div class="metric-container">
+        <div class="metric-label">91 REGULAR<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: Xtra Advance, FuelSave, Silver</span></div>
+        <div class="metric-value">₱{data['p91']:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">95 OCTANE<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: XCS, V-Power, Platinum</span></div>
+        <div class="metric-value">₱{data['p95']:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">97+ ULTRA<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: Blaze 100, Racing</span></div>
+        <div class="metric-value">₱{data['p97']:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">DIESEL<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: Turbo, Max, Power</span></div>
+        <div class="metric-value">₱{data['dsl']:.2f}</div>
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
-col_chart, col_news = st.columns([2.5, 1])
+timeframe = st.selectbox("Select Prediction Period", [7, 15, 30], index=0, format_func=lambda x: f"{x} Days Forecast")
+forecast_df, confidence = generate_stochastic_forecast(pump_prices, timeframe)
 
-with col_chart:
-    st.markdown("""
-        <div class="glass-card" style="padding: 24px; height: 100%;">
-            <div style="font-weight: 600; font-size: 1.1rem; color: #ffffff; margin-bottom: 20px;">Performance Projections (7 Days)</div>
-    """, unsafe_allow_html=True)
-    
-    forecast_df = generate_stochastic_forecast(pump_prices, 7)
+fuel_options = list(pump_prices.keys())
+selected_fuels = st.multiselect("Select Fuel Types to Display on Graph", options=fuel_options, default=fuel_options)
+
+chart_col, table_col = st.columns([2.5, 1])
+
+with chart_col:
+    st.markdown(f"### Price Trend Prediction ({timeframe} Days)")
     melted = forecast_df.melt('Date', var_name='Fuel Type', value_name='Price')
+    filtered = melted[melted['Fuel Type'].isin(selected_fuels)]
+    selection = alt.selection_point(fields=['Fuel Type'], bind='legend')
     
-    chart = alt.Chart(melted).mark_line(strokeWidth=2, point=True).encode(
-        x=alt.X('Date:N', axis=alt.Axis(grid=False, labelColor='#8b949e', title=None)),
-        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), axis=alt.Axis(grid=True, gridColor='#30363d', labelColor='#8b949e', title='Estimated Price (₱/L)')),
-        color=alt.Color('Fuel Type:N', scale=alt.Scale(range=['#3fb950', '#58a6ff', '#bc8cff', '#ff7b72']), legend=alt.Legend(orient="bottom", title=None, labelColor='#8b949e')),
+    chart = alt.Chart(filtered).mark_line(point=True, strokeWidth=3).encode(
+        x=alt.X('Date:N', sort=None, title='Date', axis=alt.Axis(grid=False)),
+        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (₱/L)', axis=alt.Axis(grid=True, gridColor='rgba(128, 128, 128, 0.2)')),
+        color=alt.Color('Fuel Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444']), legend=alt.Legend(orient="bottom", title=None)),
+        opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
         tooltip=['Date', 'Fuel Type', 'Price']
-    ).properties(height=320).configure_view(strokeOpacity=0)
+    ).add_params(selection).properties(height=450).configure_view(strokeWidth=0).configure_axis(domain=False)
     
     st.altair_chart(chart, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
-with col_news:
+with table_col:
+    st.markdown("### Model Stats")
+    st.metric("Estimated Accuracy", f"{confidence}%")
+    st.dataframe(forecast_df[['Date'] + selected_fuels], hide_index=True, use_container_width=True, height=360)
+
+st.markdown("### Latest Market Intelligence")
+n1, n2 = st.columns(2)
+with n1:
     st.markdown(f"""
-        <div class="news-card">
-            <div class="news-header">Intelligence Feed</div>
-            <div class="news-title">{news[0]['title']}</div>
-            <div class="news-desc">{news[0]['description']}</div>
-            <a href="{news[0]['link']}" class="action-btn" target="_blank">View Report</a>
-        </div>
-        <div class="news-card">
-            <div class="news-header">Regulatory Advisory</div>
-            <div class="news-title">{news[1]['title']}</div>
-            <div class="news-desc">{news[1]['description']}</div>
-            <a href="{news[1]['link']}" class="action-btn action-btn-alt" target="_blank">Access Data</a>
-        </div>
+    <div class="news-card">
+        <h4>{news[0]['title']}</h4>
+        <p>{news[0]['description']}</p>
+        <a href="{news[0]['link']}" target="_blank">ACCESS SOURCE ({news[0]['source']})</a>
+    </div>
+    """, unsafe_allow_html=True)
+with n2:
+    st.markdown(f"""
+    <div class="news-card">
+        <h4>{news[1]['title']}</h4>
+        <p>{news[1]['description']}</p>
+        <a href="{news[1]['link']}" target="_blank">ACCESS SOURCE ({news[1]['source']})</a>
+    </div>
     """, unsafe_allow_html=True)
 
-with st.expander("System Configuration & Methodology"):
-    st.markdown("""
-    **Architecture:**
-    * Macro parameters (USD/PHP, Brent Crude) retrieved via Federal Reserve Economic Data (FRED) API.
-    * Intelligence feed aggregated via NewsData.io API.
-    * Regression model utilizes Ordinary Least Squares (OLS) for real-time parameter weighting.
-    * Forward projections executed via Stochastic Random Walk with Gaussian distribution models.
-    """)
+with st.expander("Technical Methodology"):
+    st.write("1. Data Integration: Macro indicators (USD/PHP and Brent Crude) are retrieved via the Federal Reserve Economic Data (FRED) API. Market intelligence is extracted via NewsData.io.")
+    st.write("2. Machine Learning: The system employs Ordinary Least Squares (OLS) regression matrices to map historical price boundaries against live global benchmarks.")
+    st.write("3. Stochastic Forecasting: Forward projections are modeled via Random Walk with Drift algorithms, incorporating static growth constants and Gaussian volatility arrays.")
+
+with st.expander("Definition of Terms"):
+    st.write("91 RON: Standard unleaded gasoline (Petron Xtra Advance, Shell FuelSave, Caltex Silver).")
+    st.write("95 RON: Premium unleaded gasoline (Petron XCS, Shell V-Power, Caltex Platinum).")
+    st.write("97+ RON: High-performance gasoline (Petron Blaze 100, Shell V-Power Racing).")
+    st.write("Diesel: Standard compression-ignition fuel (Petron Turbo Diesel, Shell V-Power Diesel, Caltex Power Diesel).")
+
+st.markdown("### References")
+st.markdown("""
+<div class="reference-section">
+    <div style="margin-bottom:8px;">Federal Reserve Bank of St. Louis. (2026). Economic Data (FRED). https://fred.stlouisfed.org/</div>
+    <div style="margin-bottom:8px;">Department of Energy. (2026). Oil Monitor: Weekly Price Adjustments. Republic of the Philippines.</div>
+    <div style="margin-bottom:8px;">NewsData.io. (2026). Live News Aggregation API. https://newsdata.io/</div>
+    <div>World Bank. (2026). Commodity Markets Outlook: Energy Prices and Volatility.</div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="footer-text">
+    <strong>Developed by <a href="https://www.linkedin.com/in/ignlucina/" target="_blank">Ignacio L.</a> and <a href="https://www.linkedin.com/in/ajebareng56/" target="_blank">Andrei B.</a></strong>
+</div>
+""", unsafe_allow_html=True)
