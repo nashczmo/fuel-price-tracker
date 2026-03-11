@@ -5,6 +5,7 @@ import altair as alt
 from datetime import datetime, timedelta
 import numpy as np
 
+# --- 1. Dashboard Configuration ---
 st.set_page_config(page_title="Fuel Price Tracker", layout="wide")
 
 st.markdown("""
@@ -52,31 +53,53 @@ st.markdown("""
     
     .footer-text { color: #8e95a2; font-size: 0.9rem; margin-top: 40px; text-align: center; line-height: 1.8;}
     
-    /* Alignment adjustments for control bar */
     .align-bottom { padding-top: 28px; }
+    
+    .timestamp-text {
+        color: #8e95a2;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
+# --- 2. Data Engine (Hidden APIs) ---
 @st.cache_data(ttl=3600)
 def fetch_market_data():
-    API_TOKEN = "d23cc88bf39f27e263bb4a36c07d509abc0851c33e5629ee1249c54475974ce2"
+    # Attempt to load from Streamlit Secrets (Hides your keys from GitHub)
     try:
+        OIL_API_TOKEN = st.secrets["OIL_API_TOKEN"]
+    except KeyError:
+        st.error("Missing Secret: OIL_API_TOKEN. Please check Streamlit Settings.")
+        return 59.02, 74.50, 75.10, "Configuration Error"
+
+    try:
+        # FX Data
         fx_data = requests.get("https://open.er-api.com/v6/latest/USD", timeout=5).json()
         php_rate = fx_data.get('rates', {}).get('PHP', 59.02)
-        headers = {"Authorization": f"Token {API_TOKEN}"}
-        oil_res = requests.get("https://api.oilpriceapi.com/v1/prices/latest?by_code=GASOLINE_USD,DIESEL_USD", headers=headers, timeout=5).json()
+        
+        # Oil Data
+        headers = {"Authorization": f"Token {OIL_API_TOKEN}"}
+        oil_url = "https://api.oilpriceapi.com/v1/prices/latest?by_code=GASOLINE_USD,DIESEL_USD"
+        oil_res = requests.get(oil_url, headers=headers, timeout=5).json()
+        
         gas_raw = oil_res['data'][0]['price']
         dsl_raw = oil_res['data'][1]['price']
+        
+        # Calculation: (Barrel Price / 158.98 liters) * FX * Risk Multiplier + Taxes/Margins
         adj = 1.35 
         gas_base = ((gas_raw / 158.98) * php_rate * adj) + 18.50
         diesel_base = ((dsl_raw / 158.98) * php_rate * adj) + 13.50
-        return php_rate, gas_base, diesel_base
+        
+        fetch_time = datetime.now().strftime("%B %d, %Y | %I:%M %p")
+        return php_rate, gas_base, diesel_base, fetch_time
     except Exception:
-        return 59.02, 74.50, 75.10
+        return 59.02, 74.50, 75.10, datetime.now().strftime("%B %d, %Y | %I:%M %p")
 
 def generate_forecast(base_prices, days):
     np.random.seed(42)
-    dates = [(datetime(2026, 3, 11) + timedelta(days=i)).strftime('%a, %b %d') for i in range(1, days + 1)]
+    dates = [(datetime.now() + timedelta(days=i)).strftime('%a, %b %d') for i in range(1, days + 1)]
     data = {"Date": dates}
     for grade, price in base_prices.items():
         curve = []
@@ -89,7 +112,8 @@ def generate_forecast(base_prices, days):
     accuracy = round(100 * np.exp(-0.01 * days), 1)
     return pd.DataFrame(data), accuracy
 
-fx, p95, dsl = fetch_market_data()
+# --- 3. Dashboard Logic ---
+fx, p95, dsl, last_updated = fetch_market_data()
 current_prices = {
     "91 Regular": p95 - 2.15,
     "95 Octane": p95,
@@ -99,6 +123,7 @@ current_prices = {
 
 st.title("Philippine Fuel Price Tracker & Forecast")
 st.markdown("**Public Information Dashboard** | March 11, 2026")
+st.markdown(f'<div class="timestamp-text">Data as of: {last_updated}</div>', unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns([2, 2, 1])
 with c1:
