@@ -518,7 +518,7 @@ st.markdown(f'<div class="timestamp-text"><span class="pulse-dot"></span> As of 
 
 st.markdown("""
 <div class="custom-alert">
-    <strong>MARKET ALERT:</strong> Market Alert: Conflict in the Middle East may affect global oil supply, which could lead to possible fuel price increases.
+    <strong>MARKET ALERT:</strong> Conflict in the Middle East may affect global oil supply, which could lead to possible fuel price increases.
 </div>
 """, unsafe_allow_html=True)
 
@@ -582,4 +582,5 @@ with news_column_2:
 
 render_educational_expanders()
 render_footer()
+
 
