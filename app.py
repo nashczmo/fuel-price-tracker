@@ -32,7 +32,7 @@ st.markdown("""
     }
     
     @keyframes riseUp {
-        0% { opacity: 0; transform: translateY(30px); }
+        0% { opacity: 0; transform: translateY(20px); }
         100% { opacity: 1; transform: translateY(0); }
     }
     
@@ -42,10 +42,10 @@ st.markdown("""
         padding: 24px 16px;
         border-radius: 8px;
         text-align: center;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         transition: transform 0.2s ease, border-color 0.2s ease;
         opacity: 0;
-        animation: riseUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: riseUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
     .metric-container:nth-child(1) { animation-delay: 0.1s; }
@@ -55,7 +55,7 @@ st.markdown("""
     .metric-container:nth-child(5) { animation-delay: 0.3s; }
     
     .metric-container:hover { 
-        transform: translateY(-2px); 
+        transform: translateY(-3px); 
         border-color: #3b82f6; 
     }
     
@@ -85,7 +85,9 @@ st.markdown("""
         margin-bottom: 24px;
         font-size: 0.95rem;
         line-height: 1.5;
+        opacity: 0;
         animation: riseUp 0.4s ease-out forwards;
+        animation-delay: 0.05s;
     }
     
     .news-card {
@@ -97,6 +99,9 @@ st.markdown("""
         margin-bottom: 16px;
         height: 100%;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        animation: riseUp 0.5s ease-out forwards;
+        animation-delay: 0.4s;
     }
     
     .news-card h4 { margin: 0 0 12px 0; font-size: 1.15rem; }
@@ -150,13 +155,13 @@ st.markdown("""
 if 'last_market_data' not in st.session_state:
     st.session_state.last_market_data = {
         "fx": 59.02, "p91": 72.35, "p95": 74.50, "p97": 82.30, "dsl": 75.10,
-        "timestamp": datetime.now().strftime("%B %d, %Y | %H:%M:%S PST")
+        "timestamp": datetime.now().strftime("%B %d, %Y | %I:%M %p PST")
     }
 
 if 'last_news_data' not in st.session_state:
     st.session_state.last_news_data = [
-        {"title": "Market Price Projections", "description": "Global supply factors suggest upward pressure on local retail costs.", "link": "https://www.bworldonline.com/", "source": "BusinessWorld"},
-        {"title": "Regulatory Advisories", "description": "The Department of Energy is monitoring price caps during the conflict.", "link": "https://www.doe.gov.ph/", "source": "DOE"}
+        {"title": "Global Market Pressures", "description": "International supply chains influence domestic retail costs.", "link": "#", "source": "BusinessWorld"},
+        {"title": "Regulatory Oversight", "description": "Government agencies monitor local price adjustments.", "link": "#", "source": "DOE"}
     ]
 
 @st.cache_data(ttl=300)
@@ -200,7 +205,7 @@ def fetch_comprehensive_market_data():
             "p95": live_features.dot(w_95), 
             "p97": live_features.dot(w_97), 
             "dsl": live_features.dot(w_dsl),
-            "timestamp": datetime.now().strftime("%B %d, %Y | %H:%M:%S PST")
+            "timestamp": datetime.now().strftime("%B %d, %Y | %I:%M %p PST")
         }
         st.session_state.last_market_data = new_data
         return new_data
@@ -225,7 +230,7 @@ def fetch_news_data():
         for article in articles[:2]:
             desc = article.get("description")
             if not desc:
-                desc = "Click to read the full report on recent market updates."
+                desc = "Read the full article for recent market updates."
             if len(desc) > 150: 
                 desc = desc[:150] + "..."
                 
@@ -241,7 +246,7 @@ def fetch_news_data():
     except:
         return st.session_state.last_news_data
 
-def generate_stochastic_forecast(base_prices, days):
+def generate_forecast(base_prices, days):
     np.random.seed(42)
     dates = [(datetime.now() + timedelta(days=i)).strftime('%a, %b %d') for i in range(1, days + 1)]
     forecast_data = {"Date": dates}
@@ -267,7 +272,7 @@ st.markdown(f'<div class="timestamp-text">Data Synchronized: {data["timestamp"]}
 
 st.markdown("""
 <div class="custom-alert">
-    <strong>MARKET ALERT:</strong> Fuel prices are currently experiencing high volatility and upward pressure due to the ongoing conflict in the Middle East and the closure of key shipping routes like the Strait of Hormuz.
+    <strong>MARKET ALERT:</strong> Global fuel prices remain volatile. Changes in international shipping routes and crude oil supplies directly impact local pump prices.
 </div>
 """, unsafe_allow_html=True)
 
@@ -299,7 +304,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 timeframe = st.selectbox("Select Prediction Period", [7, 15, 30], index=0, format_func=lambda x: f"{x} Days Forecast")
-forecast_df, confidence = generate_stochastic_forecast(pump_prices, timeframe)
+forecast_df, confidence = generate_forecast(pump_prices, timeframe)
 
 fuel_options = list(pump_prices.keys())
 selected_fuels = st.multiselect("Select Fuel Types to Display on Graph", options=fuel_options, default=fuel_options)
@@ -346,16 +351,19 @@ with n2:
     </div>
     """, unsafe_allow_html=True)
 
-with st.expander("Technical Methodology"):
-    st.write("1. Data Integration: Macro indicators (USD/PHP and Brent Crude) are retrieved via the Federal Reserve Economic Data (FRED) API. Market intelligence is extracted via NewsData.io.")
-    st.write("2. Machine Learning: The system employs Ordinary Least Squares (OLS) regression matrices to map historical price boundaries against live global benchmarks.")
-    st.write("3. Stochastic Forecasting: Forward projections are modeled via Random Walk with Drift algorithms, incorporating static growth constants and Gaussian volatility arrays.")
+with st.expander("How We Calculate Our Data (Methodology)"):
+    st.write("**1. Data Gathering:**")
+    st.write("We pull live global economic numbers directly from the Federal Reserve database. Specifically, we look at the current price of Brent Crude oil and the US Dollar to Philippine Peso exchange rate. We also fetch real-time news articles using a news aggregator.")
+    st.write("**2. Calculating Today's Prices:**")
+    st.write("We use a mathematical technique called Linear Regression. By analyzing how past fuel prices in the Philippines reacted to changes in global oil prices and currency rates, we identified a pattern. The system applies this pattern to today's global numbers to accurately estimate the current pump prices.")
+    st.write("**3. Predicting Future Prices:**")
+    st.write("To forecast prices for the next 7 to 30 days, we use a statistical simulation. The model assumes prices will naturally drift slightly upward over time, while also adding random daily fluctuations based on how much fuel prices typically change day-to-day.")
 
-with st.expander("Definition of Terms"):
-    st.write("91 RON: Standard unleaded gasoline (Petron Xtra Advance, Shell FuelSave, Caltex Silver).")
-    st.write("95 RON: Premium unleaded gasoline (Petron XCS, Shell V-Power, Caltex Platinum).")
-    st.write("97+ RON: High-performance gasoline (Petron Blaze 100, Shell V-Power Racing).")
-    st.write("Diesel: Standard compression-ignition fuel (Petron Turbo Diesel, Shell V-Power Diesel, Caltex Power Diesel).")
+with st.expander("Definition of Fuel Types"):
+    st.write("**91 RON (Regular Gas):** Standard unleaded gasoline. Common names include Petron Xtra Advance, Shell FuelSave, and Caltex Silver. Good for most everyday cars.")
+    st.write("**95 RON (Premium Gas):** Mid-tier gasoline designed for better efficiency. Common names include Petron XCS, Shell V-Power, and Caltex Platinum.")
+    st.write("**97+ RON (Ultra Premium):** High-performance fuel. Common names include Petron Blaze 100 and Shell V-Power Racing. Designed for sports cars and luxury vehicles.")
+    st.write("**Diesel:** Standard fuel for diesel engines. Common names include Petron Turbo Diesel, Shell V-Power Diesel, and Caltex Power Diesel.")
 
 st.markdown("### References")
 st.markdown("""
@@ -363,7 +371,6 @@ st.markdown("""
     <div style="margin-bottom:8px;">Federal Reserve Bank of St. Louis. (2026). Economic Data (FRED). https://fred.stlouisfed.org/</div>
     <div style="margin-bottom:8px;">Department of Energy. (2026). Oil Monitor: Weekly Price Adjustments. Republic of the Philippines.</div>
     <div style="margin-bottom:8px;">NewsData.io. (2026). Live News Aggregation API. https://newsdata.io/</div>
-    <div>World Bank. (2026). Commodity Markets Outlook: Energy Prices and Volatility.</div>
 </div>
 """, unsafe_allow_html=True)
 
