@@ -5,6 +5,7 @@ import altair as alt
 from datetime import datetime, timedelta
 import numpy as np
 
+# --- 1. Dashboard Configuration & Animated CSS ---
 st.set_page_config(page_title="Fuel Price Tracker", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -95,6 +96,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# --- 2. Live Data Engine ---
 def fetch_ml_market_data():
     try:
         FRED_KEY = st.secrets["FRED_API_KEY"]
@@ -132,11 +134,19 @@ def generate_forecast(base_prices, days):
         data[grade] = [round(price * (1 + np.random.normal(0.003, 0.015)), 2) for _ in range(days)]
     return pd.DataFrame(data), round(100 * np.exp(-0.012 * days), 1)
 
+# --- 3. UI Implementation ---
 fx, p95, dsl, last_updated = fetch_ml_market_data()
-prices = {"91 Regular": p95 - 2.15, "95 Octane": p95, "97+ Ultra": p95 + 7.80, "Diesel": dsl}
+
+# Dictionary keys updated with "Also Known As" brand names
+prices = {
+    "91 RON (Xtra Advance / FuelSave / Silver)": p95 - 2.15, 
+    "95 RON (XCS / V-Power / Platinum)": p95, 
+    "97+ RON (Blaze 100 / Racing)": p95 + 7.80, 
+    "Diesel (Turbo / Max / Power)": dsl
+}
 
 st.title("Philippine Fuel Price Tracker & Forecast")
-st.markdown("**Public Information Dashboard**")
+st.markdown("**Public Information Dashboard | Real-Time ML Architecture**")
 st.markdown(f'<div class="timestamp-text">Live Data Retrieved: {last_updated}</div>', unsafe_allow_html=True)
 
 timeframe = st.selectbox("Select Prediction Period", [7, 15, 30], index=0, format_func=lambda x: f"{x} Days Forecast")
@@ -150,18 +160,36 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown("### Estimated Current Pump Prices")
+
+# Sub-labels added to the Metric Grid HTML
 st.markdown(f"""
 <div class="metric-grid">
-    <div class="metric-container"><div class="metric-label">USD TO PHP</div><div class="metric-value">P{fx:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">91 REGULAR</div><div class="metric-value">P{prices['91 Regular']:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">95 OCTANE</div><div class="metric-value">P{prices['95 Octane']:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">97+ ULTRA</div><div class="metric-value">P{prices['97+ Ultra']:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">DIESEL</div><div class="metric-value">P{prices['Diesel']:.2f}</div></div>
+    <div class="metric-container">
+        <div class="metric-label">USD TO PHP</div>
+        <div class="metric-value">₱{fx:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">91 REGULAR<br><span style="font-size:0.65rem; color:#64748b; text-transform:none;">AKA: Xtra Advance, FuelSave, Silver</span></div>
+        <div class="metric-value">₱{prices['91 RON (Xtra Advance / FuelSave / Silver)']:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">95 OCTANE<br><span style="font-size:0.65rem; color:#64748b; text-transform:none;">AKA: XCS, V-Power, Platinum</span></div>
+        <div class="metric-value">₱{prices['95 RON (XCS / V-Power / Platinum)']:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">97+ ULTRA<br><span style="font-size:0.65rem; color:#64748b; text-transform:none;">AKA: Blaze 100, Racing</span></div>
+        <div class="metric-value">₱{prices['97+ RON (Blaze 100 / Racing)']:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">DIESEL<br><span style="font-size:0.65rem; color:#64748b; text-transform:none;">AKA: Turbo, Max, Power</span></div>
+        <div class="metric-value">₱{prices['Diesel (Turbo / Max / Power)']:.2f}</div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
 forecast_df, accuracy_pct = generate_forecast(prices, timeframe)
 
+# Interactive Selection
 fuel_options = list(prices.keys())
 selected_fuels = st.multiselect("Select Fuel Types to Display on Graph", options=fuel_options, default=fuel_options)
 
@@ -177,7 +205,7 @@ with chart_col:
     
     chart = alt.Chart(filtered_melted).mark_line(point=True, strokeWidth=3).encode(
         x=alt.X('Date:N', sort=None, title='Date', axis=alt.Axis(grid=False)),
-        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (P/L)', axis=alt.Axis(grid=True, gridColor='#1e293b')),
+        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (₱/L)', axis=alt.Axis(grid=True, gridColor='#1e293b')),
         color=alt.Color('Fuel Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444']), legend=alt.Legend(orient="bottom", title="Click legend to highlight")),
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
         tooltip=['Date', 'Fuel Type', 'Price']
@@ -197,7 +225,7 @@ with n1:
     <div class="news-card">
         <h4>Market Price Projections</h4>
         <p>Global supply factors continue to suggest upward pressure on local retail costs amidst geopolitical strain.</p>
-        <a href="https://www.bworldonline.com/top-stories/2026/03/10/735084/big-time-fuel-price-hikes-set-as-war-throttles-supply/" target="_blank">ACCESS SOURCE (BusinessWorld) -></a>
+        <a href="https://www.bworldonline.com/top-stories/2026/03/10/735084/big-time-fuel-price-hikes-set-as-war-throttles-supply/" target="_blank">ACCESS SOURCE (BusinessWorld) →</a>
     </div>
     """, unsafe_allow_html=True)
 with n2:
@@ -205,7 +233,7 @@ with n2:
     <div class="news-card">
         <h4>Regulatory Advisories</h4>
         <p>The Department of Energy is enforcing staggered price hikes and price caps to protect domestic consumers during the conflict.</p>
-        <a href="https://pia.gov.ph/news/doe-sets-new-fuel-price-caps-through-march-9/" target="_blank">ACCESS ADVISORY (DOE) -></a>
+        <a href="https://pia.gov.ph/news/doe-sets-new-fuel-price-caps-through-march-9/" target="_blank">ACCESS ADVISORY (DOE) →</a>
     </div>
     """, unsafe_allow_html=True)
 
@@ -215,20 +243,23 @@ with st.expander("View Detailed Calculation Methodology"):
     The system utilizes the Federal Reserve Economic Data (FRED) API to retrieve high-fidelity economic indicators. The primary inputs are the global benchmark for *Brent Crude Oil* ($X_1$, Series: DCOILBRENTEU) and the *USD/PHP Exchange Rate* ($X_2$, Series: DEXPHUS).
     
     ### 2. Multiple Linear Regression (MLR) Implementation
-    A deterministic MLR model maps the relationship between independent global indicators and the dependent domestic retail price ($Y$). The parameters beta_1 and beta_0 represent the optimized refining weight and static tax bias, respectively.
-    * **Refining Coefficient (beta_1):** Approximates the volumetric conversion and MOPS premium.
-    * **Tax Bias (beta_0):** Injects fixed statutory costs, specifically the P10.00/L (Gasoline) and P6.00/L (Diesel) excise taxes mandated by the *TRAIN Law* (Republic of the Philippines, 2017), plus standard 12% VAT calculations.
+    A deterministic MLR model maps the relationship between independent global indicators and the dependent domestic retail price ($Y$). The parameters $\\beta_1$ and $\\beta_0$ represent the optimized refining weight and static tax bias, respectively.
+    * **Refining Coefficient ($\\beta_1$):** Approximates the volumetric conversion and MOPS premium.
+    * **Tax Bias ($\\beta_0$):** Injects fixed statutory costs, specifically the ₱10.00/L (Gasoline) and ₱6.00/L (Diesel) excise taxes mandated by the *TRAIN Law* (Republic of the Philippines, 2017), plus standard 12% VAT calculations.
     
     ### 3. Geopolitical Volatility Index (GVI)
-    To adjust for supply-chain anomalies independent of raw crude variations, the algorithm applies a heuristic GVI multiplier (gamma = 1.035).
+    To adjust for supply-chain anomalies independent of raw crude variations, the algorithm applies a heuristic GVI multiplier ($\\gamma = 1.035$).
     
     ### 4. Stochastic Forecasting
-    Future price arrays are generated via a Random Walk with Drift model. The algorithm applies a daily drift factor (mu = 0.3%) and historical volatility (sigma = 1.5%), modeled via a Gaussian distribution.
+    Future price arrays are generated via a Random Walk with Drift model. The algorithm applies a daily drift factor ($\\mu = 0.3\\%$) and historical volatility ($\\sigma = 1.5\\%$), modeled via a Gaussian distribution.
     """)
     st.latex(r"Y = [(\beta_1 X_1 \times X_{2_{norm}}) \times \gamma] + \beta_0")
 
 with st.expander("Definition of Terms"):
     st.markdown("""
+    * **91 RON (Regular):** The standard unleaded gasoline tier. Commonly known at local stations as Petron Xtra Advance, Shell FuelSave Gasoline, or Caltex Silver.
+    * **95 RON (Premium):** The mid-tier gasoline designed for better efficiency. Commonly known as Petron XCS, Shell V-Power Gasoline, or Caltex Platinum.
+    * **97+ RON (Ultra):** High-performance fuel for premium engines. Commonly known as Petron Blaze 100 or Shell V-Power Racing.
     * **Brent Crude:** The leading global price benchmark for Atlantic basin crude oils. It dictates the price of roughly two-thirds of the world's internationally traded crude oil.
     * **MOPS (Mean of Platts Singapore):** The daily average of all trading transactions of refined diesel and gasoline made by S&P Global Platts in Singapore. This is the exact pricing basis for refined fuel in the Philippines.
     * **GVI (Geopolitical Volatility Index):** A custom algorithmic multiplier applied to the baseline fuel cost to account for physical supply chain disruptions, such as shipping route closures due to war.
