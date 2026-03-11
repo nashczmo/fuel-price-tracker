@@ -23,6 +23,12 @@ st.markdown("""
         margin-top: 8px;
     }
     
+    /* Animation Keyframes for the Rising Effect */
+    @keyframes riseUp {
+        0% { opacity: 0; transform: translateY(30px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    
     .metric-container {
         background: linear-gradient(145deg, #151b2b 0%, #0f1423 100%);
         border: 1px solid #1e293b;
@@ -31,9 +37,18 @@ st.markdown("""
         text-align: center;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: transform 0.2s ease, border-color 0.2s ease;
+        opacity: 0; /* Start hidden for animation */
+        animation: riseUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
-    .metric-container:hover { transform: translateY(-2px); border-color: #3b82f6; }
+    /* Staggered Animation Delays */
+    .metric-container:nth-child(1) { animation-delay: 0.1s; }
+    .metric-container:nth-child(2) { animation-delay: 0.2s; }
+    .metric-container:nth-child(3) { animation-delay: 0.3s; }
+    .metric-container:nth-child(4) { animation-delay: 0.4s; }
+    .metric-container:nth-child(5) { animation-delay: 0.5s; }
+    
+    .metric-container:hover { transform: translateY(-4px) !important; border-color: #3b82f6; }
     
     .metric-label { color: #94a3b8; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
     .metric-value { color: #f8fafc; font-size: 1.85rem; font-weight: 700; line-height: 1.2; }
@@ -50,6 +65,7 @@ st.markdown("""
         gap: 12px;
         font-size: 0.95rem;
         line-height: 1.5;
+        animation: riseUp 0.5s ease-out forwards;
     }
     
     .news-card {
@@ -148,7 +164,6 @@ st.markdown(f"""
 
 forecast_df, accuracy_pct = generate_forecast(prices, timeframe)
 
-# Interactive Selection
 fuel_options = list(prices.keys())
 selected_fuels = st.multiselect("Select Fuel Types to Display on Graph", options=fuel_options, default=fuel_options)
 
@@ -158,7 +173,6 @@ with chart_col:
     st.markdown(f"### Price Trend Prediction ({timeframe} Days)")
     melted = forecast_df.melt('Date', var_name='Fuel Type', value_name='Price')
     
-    # Filter data based on user selection
     filtered_melted = melted[melted['Fuel Type'].isin(selected_fuels)]
     
     selection = alt.selection_point(fields=['Fuel Type'], bind='legend')
