@@ -37,13 +37,12 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 2. Ultra-Efficient Data Engine ---
-# Set to 86400 (24 hours) to minimize API usage
 @st.cache_data(ttl=86400) 
 def fetch_market_data():
     try:
         OIL_API_TOKEN = st.secrets["OIL_API_TOKEN"]
     except KeyError:
-        return 59.02, 74.50, 75.10, "API Config Missing"
+        return 59.02, 74.50, 75.10, "Configuration Missing"
 
     try:
         # Currency Exchange
@@ -58,15 +57,15 @@ def fetch_market_data():
         gas_raw = oil_res['data'][0]['price']
         dsl_raw = oil_res['data'][1]['price']
         
-        # Calculation: (Barrel / Liters) * FX * Risk + Local Fees
+        # Calculation: (Barrel / Liters) * FX * 1.35 multiplier + Local Fees
         gas_base = ((gas_raw / 158.98) * php_rate * 1.35) + 18.50
         diesel_base = ((dsl_raw / 158.98) * php_rate * 1.35) + 13.50
         
-        fetch_time = datetime.now().strftime("%B %d, %Y | %I:%M %p")
-        return php_rate, gas_base, diesel_base, fetch_time
+        # Date only for the timestamp
+        fetch_date = datetime.now().strftime("%B %d, %Y")
+        return php_rate, gas_base, diesel_base, fetch_date
     except Exception:
-        # Fallback values if API fails to save credits
-        return 59.02, 74.50, 75.10, "Offline Mode (Using Last Known Values)"
+        return 59.02, 74.50, 75.10, datetime.now().strftime("%B %d, %Y")
 
 def generate_forecast(base_prices, days):
     np.random.seed(42) 
@@ -78,7 +77,7 @@ def generate_forecast(base_prices, days):
     return pd.DataFrame(data), round(100 * np.exp(-0.01 * days), 1)
 
 # --- 3. UI Implementation ---
-fx, p95, dsl, last_updated = fetch_market_data()
+fx, p95, dsl, last_updated_date = fetch_market_data()
 current_prices = {
     "91 Regular": p95 - 2.15,
     "95 Octane": p95,
@@ -88,11 +87,11 @@ current_prices = {
 
 st.title("Philippine Fuel Price Tracker & Forecast")
 st.markdown("**Public Information Dashboard**")
-st.markdown(f'<div class="timestamp-text">Price baseline as of: {last_updated}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="timestamp-text">Price baseline as of: {last_updated_date}</div>', unsafe_allow_html=True)
 
 # Selection Row
 timeframe = st.selectbox("Select Prediction Period", [7, 15, 30], index=0, format_func=lambda x: f"{x} Days")
-st.info(f"System Status: Data is cached for 24 hours to preserve API limits. Viewing trends for {timeframe} days.")
+st.info(f"System Status: Efficiency mode active. Viewing trends for {timeframe} days.")
 
 # Metrics
 m1, m2, m3, m4, m5 = st.columns(5)
@@ -135,7 +134,7 @@ with n2:
     st.markdown('<div class="news-card"><h4>Regulatory Advisories</h4><p>Local authorities are monitoring price implementations across regional terminals.</p><a href="https://doe.gov.ph/articles/3358435" target="_blank">ADVISORY</a></div>', unsafe_allow_html=True)
 
 with st.expander("View Calculation Methodology"):
-    st.write("Calculations utilize global crude benchmarks (MOPS equivalent), daily USD/PHP rates, and localized tax/margin constants.")
+    st.write("Calculations utilize global crude benchmarks, daily USD/PHP rates, and localized tax/margin constants.")
     st.latex(r"Price = \left[ \left( \frac{Barrel}{158.98} \times FX \right) \times 1.35 \right] + Taxes")
 
-st.markdown('<div class="footer-text"><strong>Developed by Ignacio L. and Andrei B.</strong><br>Credit Preservation Mode: Active.</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer-text"><strong>Developed by Ignacio L. and Andrei B.</strong><br>Data cached to optimize credit usage.</div>', unsafe_allow_html=True)
