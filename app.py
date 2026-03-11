@@ -5,7 +5,6 @@ import altair as alt
 from datetime import datetime, timedelta
 import numpy as np
 
-# --- 1. Dashboard Configuration & Polished CSS ---
 st.set_page_config(page_title="Fuel Price Tracker", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -39,7 +38,6 @@ st.markdown("""
     .metric-label { color: #94a3b8; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
     .metric-value { color: #f8fafc; font-size: 1.85rem; font-weight: 700; line-height: 1.2; }
     
-    /* Custom Alert Box to fix double icons */
     .custom-alert {
         background-color: #423800;
         border: 1px solid #eab308;
@@ -71,17 +69,18 @@ st.markdown("""
     .news-card a:hover { color: #93c5fd; }
     
     .footer-text { color: #64748b; font-size: 0.9rem; margin-top: 48px; text-align: center; line-height: 1.8; border-top: 1px solid #1e293b; padding-top: 24px; }
+    .footer-text a { color: #3b82f6; text-decoration: none; font-weight: 600; transition: color 0.2s ease; }
+    .footer-text a:hover { color: #60a5fa; text-decoration: underline; }
+    
     .timestamp-text { color: #94a3b8; font-size: 0.95rem; font-weight: 500; margin-bottom: 24px; display: inline-block; background: #1e293b; padding: 6px 14px; border-radius: 16px; }
     .reference-section { font-size: 0.85rem; color: #94a3b8; padding: 24px; background-color: #151b2b; border-radius: 8px; border: 1px solid #1e293b; line-height: 1.6; }
     .hanging-indent { padding-left: 2.5em; text-indent: -2.5em; margin-bottom: 12px; }
     
-    /* Streamlit overrides for cleaner layout */
     div[data-testid="stExpander"] { background-color: #151b2b; border-color: #1e293b; border-radius: 8px; }
     div[data-baseweb="select"] > div { background-color: #151b2b; border-color: #1e293b; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. Live Data Engine (NO CACHING) ---
 def fetch_ml_market_data():
     try:
         FRED_KEY = st.secrets["FRED_API_KEY"]
@@ -119,7 +118,6 @@ def generate_forecast(base_prices, days):
         data[grade] = [round(price * (1 + np.random.normal(0.003, 0.015)), 2) for _ in range(days)]
     return pd.DataFrame(data), round(100 * np.exp(-0.012 * days), 1)
 
-# --- 3. UI Implementation ---
 fx, p95, dsl, last_updated = fetch_ml_market_data()
 prices = {"91 Regular": p95 - 2.15, "95 Octane": p95, "97+ Ultra": p95 + 7.80, "Diesel": dsl}
 
@@ -131,10 +129,8 @@ timeframe = st.selectbox("Select Prediction Period", [7, 15, 30], index=0, forma
 
 st.info(f"System Operational. Current configuration fetches live global market indicators on every query. Estimating trends for the upcoming {timeframe} days.")
 
-# Custom HTML Warning Box (Fixes the double icon and removes the number)
 st.markdown("""
 <div class="custom-alert">
-    <div style="font-size: 1.5rem;">⚠️</div>
     <div><strong>MARKET ALERT:</strong> Fuel prices are currently experiencing high volatility and upward pressure due to the ongoing conflict in the Middle East and the closure of key shipping routes like the Strait of Hormuz.</div>
 </div>
 """, unsafe_allow_html=True)
@@ -142,34 +138,45 @@ st.markdown("""
 st.markdown("### Estimated Current Pump Prices")
 st.markdown(f"""
 <div class="metric-grid">
-    <div class="metric-container"><div class="metric-label">USD TO PHP</div><div class="metric-value">₱{fx:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">91 REGULAR</div><div class="metric-value">₱{prices['91 Regular']:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">95 OCTANE</div><div class="metric-value">₱{prices['95 Octane']:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">97+ ULTRA</div><div class="metric-value">₱{prices['97+ Ultra']:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">DIESEL</div><div class="metric-value">₱{prices['Diesel']:.2f}</div></div>
+    <div class="metric-container"><div class="metric-label">USD TO PHP</div><div class="metric-value">P{fx:.2f}</div></div>
+    <div class="metric-container"><div class="metric-label">91 REGULAR</div><div class="metric-value">P{prices['91 Regular']:.2f}</div></div>
+    <div class="metric-container"><div class="metric-label">95 OCTANE</div><div class="metric-value">P{prices['95 Octane']:.2f}</div></div>
+    <div class="metric-container"><div class="metric-label">97+ ULTRA</div><div class="metric-value">P{prices['97+ Ultra']:.2f}</div></div>
+    <div class="metric-container"><div class="metric-label">DIESEL</div><div class="metric-value">P{prices['Diesel']:.2f}</div></div>
 </div>
 """, unsafe_allow_html=True)
 
 forecast_df, accuracy_pct = generate_forecast(prices, timeframe)
+
+# Interactive Selection
+fuel_options = list(prices.keys())
+selected_fuels = st.multiselect("Select Fuel Types to Display on Graph", options=fuel_options, default=fuel_options)
+
 chart_col, table_col = st.columns([2, 1])
 
 with chart_col:
     st.markdown(f"### Price Trend Prediction ({timeframe} Days)")
     melted = forecast_df.melt('Date', var_name='Fuel Type', value_name='Price')
     
-    chart = alt.Chart(melted).mark_line(point=True, strokeWidth=3).encode(
+    # Filter data based on user selection
+    filtered_melted = melted[melted['Fuel Type'].isin(selected_fuels)]
+    
+    selection = alt.selection_point(fields=['Fuel Type'], bind='legend')
+    
+    chart = alt.Chart(filtered_melted).mark_line(point=True, strokeWidth=3).encode(
         x=alt.X('Date:N', sort=None, title='Date', axis=alt.Axis(grid=False)),
-        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (₱/L)', axis=alt.Axis(grid=True, gridColor='#1e293b')),
-        color=alt.Color('Fuel Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444']), legend=alt.Legend(orient="bottom", title=None)),
+        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (P/L)', axis=alt.Axis(grid=True, gridColor='#1e293b')),
+        color=alt.Color('Fuel Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444']), legend=alt.Legend(orient="bottom", title="Click legend to highlight")),
+        opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
         tooltip=['Date', 'Fuel Type', 'Price']
-    ).properties(height=450).configure_view(strokeWidth=0).configure_axis(domain=False)
+    ).add_params(selection).properties(height=450).configure_view(strokeWidth=0).configure_axis(domain=False)
     
     st.altair_chart(chart, use_container_width=True)
 
 with table_col:
     st.markdown("### Model Stats")
     st.metric("Estimated Accuracy", f"{accuracy_pct}%")
-    st.dataframe(forecast_df, hide_index=True, use_container_width=True, height=360)
+    st.dataframe(forecast_df[['Date'] + selected_fuels], hide_index=True, use_container_width=True, height=360)
 
 st.markdown("### Latest Market Intelligence")
 n1, n2 = st.columns(2)
@@ -178,7 +185,7 @@ with n1:
     <div class="news-card">
         <h4>Market Price Projections</h4>
         <p>Global supply factors continue to suggest upward pressure on local retail costs amidst geopolitical strain.</p>
-        <a href="https://www.bworldonline.com/top-stories/2026/03/10/735084/big-time-fuel-price-hikes-set-as-war-throttles-supply/" target="_blank">ACCESS SOURCE (BusinessWorld) →</a>
+        <a href="https://www.bworldonline.com/top-stories/2026/03/10/735084/big-time-fuel-price-hikes-set-as-war-throttles-supply/" target="_blank">ACCESS SOURCE (BusinessWorld) -></a>
     </div>
     """, unsafe_allow_html=True)
 with n2:
@@ -186,26 +193,25 @@ with n2:
     <div class="news-card">
         <h4>Regulatory Advisories</h4>
         <p>The Department of Energy is enforcing staggered price hikes and price caps to protect domestic consumers during the conflict.</p>
-        <a href="https://pia.gov.ph/news/doe-sets-new-fuel-price-caps-through-march-9/" target="_blank">ACCESS ADVISORY (DOE) →</a>
+        <a href="https://pia.gov.ph/news/doe-sets-new-fuel-price-caps-through-march-9/" target="_blank">ACCESS ADVISORY (DOE) -></a>
     </div>
     """, unsafe_allow_html=True)
 
-# --- Expanding Sections ---
 with st.expander("View Detailed Calculation Methodology"):
     st.markdown("""
     ### 1. Data Ingestion Architecture
     The system utilizes the Federal Reserve Economic Data (FRED) API to retrieve high-fidelity economic indicators. The primary inputs are the global benchmark for *Brent Crude Oil* ($X_1$, Series: DCOILBRENTEU) and the *USD/PHP Exchange Rate* ($X_2$, Series: DEXPHUS).
     
     ### 2. Multiple Linear Regression (MLR) Implementation
-    A deterministic MLR model maps the relationship between independent global indicators and the dependent domestic retail price ($Y$). The parameters $\\beta_1$ and $\\beta_0$ represent the optimized refining weight and static tax bias, respectively.
-    * **Refining Coefficient ($\\beta_1$):** Approximates the volumetric conversion and MOPS premium.
-    * **Tax Bias ($\\beta_0$):** Injects fixed statutory costs, specifically the ₱10.00/L (Gasoline) and ₱6.00/L (Diesel) excise taxes mandated by the *TRAIN Law* (Republic of the Philippines, 2017), plus standard 12% VAT calculations.
+    A deterministic MLR model maps the relationship between independent global indicators and the dependent domestic retail price ($Y$). The parameters beta_1 and beta_0 represent the optimized refining weight and static tax bias, respectively.
+    * **Refining Coefficient (beta_1):** Approximates the volumetric conversion and MOPS premium.
+    * **Tax Bias (beta_0):** Injects fixed statutory costs, specifically the P10.00/L (Gasoline) and P6.00/L (Diesel) excise taxes mandated by the *TRAIN Law* (Republic of the Philippines, 2017), plus standard 12% VAT calculations.
     
     ### 3. Geopolitical Volatility Index (GVI)
-    To adjust for supply-chain anomalies independent of raw crude variations, the algorithm applies a heuristic GVI multiplier ($\\gamma = 1.035$).
+    To adjust for supply-chain anomalies independent of raw crude variations, the algorithm applies a heuristic GVI multiplier (gamma = 1.035).
     
     ### 4. Stochastic Forecasting
-    Future price arrays are generated via a Random Walk with Drift model. The algorithm applies a daily drift factor ($\\mu = 0.3\\%$) and historical volatility ($\\sigma = 1.5\\%$), modeled via a Gaussian distribution.
+    Future price arrays are generated via a Random Walk with Drift model. The algorithm applies a daily drift factor (mu = 0.3%) and historical volatility (sigma = 1.5%), modeled via a Gaussian distribution.
     """)
     st.latex(r"Y = [(\beta_1 X_1 \times X_{2_{norm}}) \times \gamma] + \beta_0")
 
@@ -229,4 +235,10 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="footer-text"><strong>Developed by Ignacio L. and Andrei B.</strong></div>', unsafe_allow_html=True)
+st.markdown("""
+<div class="footer-text">
+    <strong>Developed by 
+    <a href="https://www.linkedin.com/in/ignlucina/" target="_blank">Ignacio L.</a> and 
+    <a href="https://www.linkedin.com/in/aje-bareng/" target="_blank">Andrei B.</a></strong>
+</div>
+""", unsafe_allow_html=True)
