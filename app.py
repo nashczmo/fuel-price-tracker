@@ -12,9 +12,9 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
-    .main { background-color: #0b0f19; font-family: 'Inter', sans-serif; }
+    .main { font-family: 'Inter', sans-serif; }
     
-    h1, h2, h3, h4 { color: #f8fafc; font-weight: 700; letter-spacing: -0.02em; }
+    h1, h2, h3, h4 { color: var(--text-color); font-weight: 700; letter-spacing: -0.02em; }
     
     .metric-grid {
         display: grid;
@@ -30,8 +30,8 @@ st.markdown("""
     }
     
     .metric-container {
-        background: linear-gradient(145deg, #151b2b 0%, #0f1423 100%);
-        border: 1px solid #1e293b;
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
         padding: 24px 16px;
         border-radius: 12px;
         text-align: center;
@@ -49,13 +49,13 @@ st.markdown("""
     
     .metric-container:hover { transform: translateY(-4px) !important; border-color: #3b82f6; }
     
-    .metric-label { color: #94a3b8; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
-    .metric-value { color: #f8fafc; font-size: 1.85rem; font-weight: 700; line-height: 1.2; }
+    .metric-label { color: var(--text-color); opacity: 0.7; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+    .metric-value { color: var(--text-color); font-size: 1.85rem; font-weight: 700; line-height: 1.2; }
     
     .custom-alert {
-        background-color: #423800;
+        background-color: rgba(234, 179, 8, 0.15);
         border: 1px solid #eab308;
-        color: #fef08a;
+        color: var(--text-color);
         padding: 16px 20px;
         border-radius: 8px;
         margin-bottom: 24px;
@@ -68,8 +68,8 @@ st.markdown("""
     }
     
     .news-card {
-        background-color: #151b2b;
-        border: 1px solid #1e293b;
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
         border-left: 4px solid #3b82f6;
         padding: 24px;
         border-radius: 8px;
@@ -78,21 +78,21 @@ st.markdown("""
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     }
     
-    .news-card h4 { margin: 0 0 12px 0; font-size: 1.15rem; color: #f8fafc; }
-    .news-card p { margin: 0 0 16px 0; font-size: 0.95rem; color: #cbd5e1; line-height: 1.6; }
-    .news-card a { color: #60a5fa; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: color 0.2s ease; }
-    .news-card a:hover { color: #93c5fd; }
+    .news-card h4 { margin: 0 0 12px 0; font-size: 1.15rem; color: var(--text-color); }
+    .news-card p { margin: 0 0 16px 0; font-size: 0.95rem; color: var(--text-color); opacity: 0.8; line-height: 1.6; }
+    .news-card a { color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: color 0.2s ease; }
+    .news-card a:hover { color: #2563eb; }
     
-    .footer-text { color: #64748b; font-size: 0.9rem; margin-top: 48px; text-align: center; line-height: 1.8; border-top: 1px solid #1e293b; padding-top: 24px; }
+    .footer-text { color: var(--text-color); opacity: 0.6; font-size: 0.9rem; margin-top: 48px; text-align: center; line-height: 1.8; border-top: 1px solid rgba(128, 128, 128, 0.2); padding-top: 24px; }
     .footer-text a { color: #3b82f6; text-decoration: none; font-weight: 600; transition: color 0.2s ease; }
-    .footer-text a:hover { color: #60a5fa; text-decoration: underline; }
+    .footer-text a:hover { color: #2563eb; text-decoration: underline; }
     
-    .timestamp-text { color: #94a3b8; font-size: 0.95rem; font-weight: 500; margin-bottom: 24px; display: inline-block; background: #1e293b; padding: 6px 14px; border-radius: 16px; }
-    .reference-section { font-size: 0.85rem; color: #94a3b8; padding: 24px; background-color: #151b2b; border-radius: 8px; border: 1px solid #1e293b; line-height: 1.6; }
+    .timestamp-text { color: var(--text-color); font-size: 0.95rem; font-weight: 500; margin-bottom: 24px; display: inline-block; background-color: var(--secondary-background-color); padding: 6px 14px; border-radius: 16px; border: 1px solid rgba(128, 128, 128, 0.2); }
+    .reference-section { font-size: 0.85rem; color: var(--text-color); opacity: 0.8; padding: 24px; background-color: var(--secondary-background-color); border-radius: 8px; border: 1px solid rgba(128, 128, 128, 0.2); line-height: 1.6; }
     .hanging-indent { padding-left: 2.5em; text-indent: -2.5em; margin-bottom: 12px; }
     
-    div[data-testid="stExpander"] { background-color: #151b2b; border-color: #1e293b; border-radius: 8px; }
-    div[data-baseweb="select"] > div { background-color: #151b2b; border-color: #1e293b; }
+    div[data-testid="stExpander"] { background-color: var(--secondary-background-color); border-color: rgba(128, 128, 128, 0.2); border-radius: 8px; }
+    div[data-baseweb="select"] > div { background-color: var(--secondary-background-color); border-color: rgba(128, 128, 128, 0.2); }
     </style>
     """, unsafe_allow_html=True)
 
@@ -137,7 +137,6 @@ def generate_forecast(base_prices, days):
 # --- 3. UI Implementation ---
 fx, p95, dsl, last_updated = fetch_ml_market_data()
 
-# Dictionary keys updated with "Also Known As" brand names
 prices = {
     "91 RON (Xtra Advance / FuelSave / Silver)": p95 - 2.15, 
     "95 RON (XCS / V-Power / Platinum)": p95, 
@@ -161,7 +160,6 @@ st.markdown("""
 
 st.markdown("### Estimated Current Pump Prices")
 
-# Sub-labels added to the Metric Grid HTML
 st.markdown(f"""
 <div class="metric-grid">
     <div class="metric-container">
@@ -169,19 +167,19 @@ st.markdown(f"""
         <div class="metric-value">₱{fx:.2f}</div>
     </div>
     <div class="metric-container">
-        <div class="metric-label">91 REGULAR<br><span style="font-size:0.65rem; color:#64748b; text-transform:none;">AKA: Xtra Advance, FuelSave, Silver</span></div>
+        <div class="metric-label">91 REGULAR<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: Xtra Advance, FuelSave, Silver</span></div>
         <div class="metric-value">₱{prices['91 RON (Xtra Advance / FuelSave / Silver)']:.2f}</div>
     </div>
     <div class="metric-container">
-        <div class="metric-label">95 OCTANE<br><span style="font-size:0.65rem; color:#64748b; text-transform:none;">AKA: XCS, V-Power, Platinum</span></div>
+        <div class="metric-label">95 OCTANE<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: XCS, V-Power, Platinum</span></div>
         <div class="metric-value">₱{prices['95 RON (XCS / V-Power / Platinum)']:.2f}</div>
     </div>
     <div class="metric-container">
-        <div class="metric-label">97+ ULTRA<br><span style="font-size:0.65rem; color:#64748b; text-transform:none;">AKA: Blaze 100, Racing</span></div>
+        <div class="metric-label">97+ ULTRA<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: Blaze 100, Racing</span></div>
         <div class="metric-value">₱{prices['97+ RON (Blaze 100 / Racing)']:.2f}</div>
     </div>
     <div class="metric-container">
-        <div class="metric-label">DIESEL<br><span style="font-size:0.65rem; color:#64748b; text-transform:none;">AKA: Turbo, Max, Power</span></div>
+        <div class="metric-label">DIESEL<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: Turbo, Max, Power</span></div>
         <div class="metric-value">₱{prices['Diesel (Turbo / Max / Power)']:.2f}</div>
     </div>
 </div>
@@ -189,7 +187,6 @@ st.markdown(f"""
 
 forecast_df, accuracy_pct = generate_forecast(prices, timeframe)
 
-# Interactive Selection
 fuel_options = list(prices.keys())
 selected_fuels = st.multiselect("Select Fuel Types to Display on Graph", options=fuel_options, default=fuel_options)
 
@@ -205,7 +202,7 @@ with chart_col:
     
     chart = alt.Chart(filtered_melted).mark_line(point=True, strokeWidth=3).encode(
         x=alt.X('Date:N', sort=None, title='Date', axis=alt.Axis(grid=False)),
-        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (₱/L)', axis=alt.Axis(grid=True, gridColor='#1e293b')),
+        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (₱/L)', axis=alt.Axis(grid=True, gridColor='rgba(128, 128, 128, 0.2)')),
         color=alt.Color('Fuel Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444']), legend=alt.Legend(orient="bottom", title="Click legend to highlight")),
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
         tooltip=['Date', 'Fuel Type', 'Price']
