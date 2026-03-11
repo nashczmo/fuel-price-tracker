@@ -13,21 +13,15 @@ st.set_page_config(
 )
 
 def inject_custom_css():
-    """
-    Injects comprehensive cascading style sheets to override Streamlit's default rendering.
-    Implements staggered keyframe animations, glassmorphism approximations, and strict grid alignments.
-    """
     st.markdown("""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
-        /* Base Container Styling */
         .main { 
             font-family: 'Inter', sans-serif; 
             background-color: var(--background-color);
         }
         
-        /* Typography System */
         h1, h2, h3, h4, h5, h6 { 
             color: var(--text-color); 
             font-weight: 700; 
@@ -41,7 +35,6 @@ def inject_custom_css():
             opacity: 0.9;
         }
         
-        /* Animation Definitions */
         @keyframes riseUpFade {
             0% { 
                 opacity: 0; 
@@ -59,7 +52,6 @@ def inject_custom_css():
             100% { opacity: 0.6; }
         }
 
-        /* Metric Grid Architecture */
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -68,7 +60,6 @@ def inject_custom_css():
             margin-top: 12px;
         }
         
-        /* Individual Metric Container Styling */
         .metric-container {
             background-color: var(--secondary-background-color);
             border: 1px solid rgba(128, 128, 128, 0.15);
@@ -81,21 +72,18 @@ def inject_custom_css():
             animation: riseUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         
-        /* Staggered Animation Delays for Sequential Loading */
         .metric-container:nth-child(1) { animation-delay: 0.05s; }
         .metric-container:nth-child(2) { animation-delay: 0.15s; }
         .metric-container:nth-child(3) { animation-delay: 0.25s; }
         .metric-container:nth-child(4) { animation-delay: 0.35s; }
         .metric-container:nth-child(5) { animation-delay: 0.45s; }
         
-        /* Hover Interaction Constraints */
         .metric-container:hover { 
             transform: translateY(-4px); 
             border-color: #3b82f6; 
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         
-        /* Metric Typography Hierarchy */
         .metric-label { 
             color: var(--text-color); 
             opacity: 0.75; 
@@ -123,7 +111,6 @@ def inject_custom_css():
             margin-top: 4px;
         }
         
-        /* System Alert Banner */
         .custom-alert {
             background-color: rgba(234, 179, 8, 0.1);
             border-left: 4px solid #eab308;
@@ -139,7 +126,6 @@ def inject_custom_css():
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         
-        /* News Component Styling */
         .news-card {
             background-color: var(--secondary-background-color);
             border: 1px solid rgba(128, 128, 128, 0.15);
@@ -185,18 +171,6 @@ def inject_custom_css():
             text-decoration: underline; 
         }
         
-        /* Document Footers and Metadata */
-        .reference-section { 
-            font-size: 0.85rem; 
-            color: var(--text-color); 
-            opacity: 0.8; 
-            padding: 28px; 
-            background-color: var(--secondary-background-color); 
-            border-radius: 8px; 
-            border: 1px solid rgba(128, 128, 128, 0.15); 
-            line-height: 1.7; 
-        }
-        
         .footer-text { 
             color: var(--text-color); 
             opacity: 0.6; 
@@ -231,7 +205,6 @@ def inject_custom_css():
             animation: pulseIndicator 2s infinite;
         }
         
-        /* Streamlit Native Overrides */
         div[data-testid="stExpander"] { 
             background-color: var(--secondary-background-color); 
             border-color: rgba(128, 128, 128, 0.15); 
@@ -246,10 +219,6 @@ def inject_custom_css():
     """, unsafe_allow_html=True)
 
 def initialize_session_state():
-    """
-    Establishes baseline variables in Streamlit's session state to guarantee
-    rendering stability during API timeouts or rate limit occurrences.
-    """
     if 'last_market_data' not in st.session_state:
         st.session_state.last_market_data = {
             "fx": 59.02, 
@@ -278,11 +247,6 @@ def initialize_session_state():
 
 @st.cache_data(ttl=300)
 def compute_linear_regression(brent_price, php_rate):
-    """
-    Executes an Ordinary Least Squares (OLS) calculation matrix.
-    Derives current domestic pump prices by mapping historical dependencies
-    between global crude costs, currency strength, and local pricing adjustments.
-    """
     historical_features = np.array([
         [1, 74.2, 55.8], 
         [1, 78.5, 56.1], 
@@ -321,10 +285,6 @@ def compute_linear_regression(brent_price, php_rate):
 
 @st.cache_data(ttl=300)
 def fetch_comprehensive_market_data():
-    """
-    Retrieves real-time macroeconomic indicators from the FRED API.
-    Routes variables through the regression module to output final market values.
-    """
     try:
         fred_api_key = st.secrets["FRED_API_KEY"]
         
@@ -362,10 +322,6 @@ def fetch_comprehensive_market_data():
 
 @st.cache_data(ttl=10800)
 def fetch_news_data():
-    """
-    Interfaces with the NewsData.io API to extract current geopolitical and economic
-    developments related to Philippine petroleum pricing. Enforces parsing fail-safes.
-    """
     try:
         newsdata_api_key = st.secrets["NEWSDATA_API_KEY"]
         search_query = "fuel%20price%20OR%20oil%20price"
@@ -414,10 +370,6 @@ def fetch_news_data():
         return st.session_state.last_news_data
 
 def generate_forecast_dataframe(base_prices, forecast_horizon_days):
-    """
-    Generates a deterministic future pricing matrix utilizing Stochastic Random Walk mechanics.
-    Injects a steady upward drift scalar and historical variance parameters to simulate reality.
-    """
     np.random.seed(42)
     
     generation_dates = []
@@ -447,9 +399,6 @@ def generate_forecast_dataframe(base_prices, forecast_horizon_days):
     return compiled_dataframe, model_confidence_score
 
 def render_metric_dashboard(market_data):
-    """
-    Renders the primary quantitative data display using explicit HTML grid structuring.
-    """
     st.markdown("### Estimated Current Pump Prices")
 
     st.markdown(f"""
@@ -490,10 +439,6 @@ def render_metric_dashboard(market_data):
     """, unsafe_allow_html=True)
 
 def build_interactive_chart(forecast_df, selected_columns, timeframe_int):
-    """
-    Constructs the Altair visualization component. Configures axes, tooltips, and dynamic
-    opacity bindings based on user multi-select parameters.
-    """
     st.markdown(f"### Price Trend Prediction ({timeframe_int} Days)")
     
     melted_dataframe = forecast_df.melt('Date', var_name='Fuel Type', value_name='Price')
@@ -520,10 +465,6 @@ def build_interactive_chart(forecast_df, selected_columns, timeframe_int):
     st.altair_chart(line_chart, use_container_width=True)
 
 def render_educational_expanders():
-    """
-    Outputs the methodology documentation translating complex statistical operations
-    into accessible, plain-language explanations.
-    """
     with st.expander("How We Calculate Our Data (Methodology)"):
         st.write("**1. Data Gathering:**")
         st.write("The system continuously pulls live economic numbers directly from the Federal Reserve database. Specifically, it monitors the current price of Brent Crude oil globally and the exact conversion rate between the US Dollar and the Philippine Peso. It simultaneously gathers verified local news articles regarding market shifts.")
@@ -541,23 +482,12 @@ def render_educational_expanders():
         st.write("**Diesel:** The standard compression-ignition fuel used by trucks, SUVs, and commercial vehicles. Common names include Petron Turbo Diesel, Shell V-Power Diesel, and Caltex Power Diesel.")
 
 def render_footer():
-    """Outputs citations and developer attribution blocks."""
-    st.markdown("### References")
-    st.markdown("""
-    <div class="reference-section">
-        <div style="margin-bottom:8px;">Federal Reserve Bank of St. Louis. (2026). Economic Data (FRED). https://fred.stlouisfed.org/</div>
-        <div style="margin-bottom:8px;">Department of Energy. (2026). Oil Monitor: Weekly Price Adjustments. Republic of the Philippines.</div>
-        <div style="margin-bottom:8px;">NewsData.io. (2026). Live News Aggregation API. https://newsdata.io/</div>
-    </div>
-    """, unsafe_allow_html=True)
-
     st.markdown("""
     <div class="footer-text">
         <strong>Developed by <a href="https://www.linkedin.com/in/ignlucina/" target="_blank">Ignacio L.</a> and <a href="https://www.linkedin.com/in/ajebareng56/" target="_blank">Andrei B.</a></strong>
     </div>
     """, unsafe_allow_html=True)
 
-# Application Execution Sequence
 inject_custom_css()
 initialize_session_state()
 
@@ -572,7 +502,7 @@ structured_pump_prices = {
 }
 
 st.title("Philippine Fuel Price Tracker")
-st.markdown(f'<div class="timestamp-text"><span class="pulse-dot"></span> Data Synchronized: {live_market_data["timestamp"]}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="timestamp-text"><span class="pulse-dot"></span> As of {live_market_data["timestamp"]}</div>', unsafe_allow_html=True)
 
 st.markdown("""
 <div class="custom-alert">
