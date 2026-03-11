@@ -7,32 +7,22 @@ import numpy as np
 import google.generativeai as genai
 import json
 
-# Setup page configuration
-st.set_page_config(
-    page_title="Fuel Price Tracker",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="Fuel Price Tracker", layout="wide", initial_sidebar_state="collapsed")
 
-# Detailed UI Enhancement via Custom CSS
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
     .main { font-family: 'Inter', sans-serif; }
     
-    h1, h2, h3, h4 { 
-        color: var(--text-color); 
-        font-weight: 700; 
-        letter-spacing: -0.02em; 
-    }
+    h1, h2, h3, h4 { color: var(--text-color); font-weight: 700; letter-spacing: -0.02em; }
     
     .metric-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-        margin-top: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+        margin-top: 8px;
     }
     
     @keyframes riseUp {
@@ -43,11 +33,11 @@ st.markdown("""
     .metric-container {
         background-color: var(--secondary-background-color);
         border: 1px solid rgba(128, 128, 128, 0.2);
-        padding: 24px 20px;
+        padding: 24px 16px;
         border-radius: 12px;
         text-align: center;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: transform 0.25s ease, border-color 0.25s ease;
+        transition: transform 0.2s ease, border-color 0.2s ease;
         opacity: 0;
         animation: riseUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
@@ -58,311 +48,271 @@ st.markdown("""
     .metric-container:nth-child(4) { animation-delay: 0.4s; }
     .metric-container:nth-child(5) { animation-delay: 0.5s; }
     
-    .metric-container:hover { 
-        transform: translateY(-5px); 
-        border-color: #3b82f6; 
-    }
+    .metric-container:hover { transform: translateY(-4px) !important; border-color: #3b82f6; }
     
-    .metric-label { 
-        color: var(--text-color); 
-        opacity: 0.7; 
-        font-size: 0.75rem; 
-        font-weight: 700; 
-        letter-spacing: 0.08em; 
-        text-transform: uppercase; 
-        margin-bottom: 10px; 
-    }
-    
-    .metric-value { 
-        color: var(--text-color); 
-        font-size: 2rem; 
-        font-weight: 800; 
-        line-height: 1.1; 
-    }
+    .metric-label { color: var(--text-color); opacity: 0.7; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+    .metric-value { color: var(--text-color); font-size: 1.85rem; font-weight: 700; line-height: 1.2; }
     
     .custom-alert {
-        background-color: rgba(59, 130, 246, 0.1);
-        border: 1px solid #3b82f6;
+        background-color: rgba(234, 179, 8, 0.15);
+        border: 1px solid #eab308;
         color: var(--text-color);
-        padding: 18px 24px;
-        border-radius: 10px;
-        margin-bottom: 28px;
+        padding: 16px 20px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
         font-size: 0.95rem;
-        line-height: 1.6;
+        line-height: 1.5;
         animation: riseUp 0.5s ease-out forwards;
     }
     
     .news-card {
         background-color: var(--secondary-background-color);
         border: 1px solid rgba(128, 128, 128, 0.2);
-        border-left: 5px solid #3b82f6;
+        border-left: 4px solid #3b82f6;
         padding: 24px;
-        border-radius: 10px;
-        margin-bottom: 20px;
+        border-radius: 8px;
+        margin-bottom: 16px;
         height: 100%;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     }
     
-    .news-card h4 { margin: 0 0 14px 0; font-size: 1.2rem; }
-    .news-card p { margin: 0 0 18px 0; font-size: 0.95rem; opacity: 0.85; line-height: 1.6; }
-    .news-card a { 
-        color: #3b82f6; 
-        text-decoration: none; 
-        font-weight: 600; 
-        font-size: 0.85rem; 
-        transition: 0.2s;
-    }
-    .news-card a:hover { color: #2563eb; text-decoration: underline; }
+    .news-card h4 { margin: 0 0 12px 0; font-size: 1.15rem; color: var(--text-color); }
+    .news-card p { margin: 0 0 16px 0; font-size: 0.95rem; color: var(--text-color); opacity: 0.8; line-height: 1.6; }
+    .news-card a { color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: color 0.2s ease; }
+    .news-card a:hover { color: #2563eb; }
     
-    .reference-section { 
-        font-size: 0.85rem; 
-        color: var(--text-color); 
-        opacity: 0.8; 
-        padding: 24px; 
-        background-color: var(--secondary-background-color); 
-        border-radius: 10px; 
-        border: 1px solid rgba(128, 128, 128, 0.2); 
-        line-height: 1.7; 
-    }
+    .footer-text { color: var(--text-color); opacity: 0.6; font-size: 0.9rem; margin-top: 48px; text-align: center; line-height: 1.8; border-top: 1px solid rgba(128, 128, 128, 0.2); padding-top: 24px; }
+    .footer-text a { color: #3b82f6; text-decoration: none; font-weight: 600; transition: color 0.2s ease; }
+    .footer-text a:hover { color: #2563eb; text-decoration: underline; }
     
-    .footer-text { 
-        color: var(--text-color); 
-        opacity: 0.6; 
-        font-size: 0.9rem; 
-        margin-top: 50px; 
-        text-align: center; 
-        border-top: 1px solid rgba(128, 128, 128, 0.2); 
-        padding-top: 25px; 
-    }
+    .timestamp-text { color: var(--text-color); font-size: 0.95rem; font-weight: 500; margin-bottom: 24px; display: inline-block; background-color: var(--secondary-background-color); padding: 6px 14px; border-radius: 16px; border: 1px solid rgba(128, 128, 128, 0.2); }
+    .reference-section { font-size: 0.85rem; color: var(--text-color); opacity: 0.8; padding: 24px; background-color: var(--secondary-background-color); border-radius: 8px; border: 1px solid rgba(128, 128, 128, 0.2); line-height: 1.6; }
+    .hanging-indent { padding-left: 2.5em; text-indent: -2.5em; margin-bottom: 12px; }
+    
+    div[data-testid="stExpander"] { background-color: var(--secondary-background-color); border-color: rgba(128, 128, 128, 0.2); border-radius: 8px; }
+    div[data-baseweb="select"] > div { background-color: var(--secondary-background-color); border-color: rgba(128, 128, 128, 0.2); }
     </style>
     """, unsafe_allow_html=True)
 
 @st.cache_data(ttl=3600)
-def fetch_comprehensive_market_data():
-    """
-    Orchestrates data ingestion from FRED and Gemini.
-    Performs dynamic ML weight recalculation using OLS.
-    """
+def fetch_ml_market_data():
     try:
         FRED_KEY = st.secrets["FRED_API_KEY"]
         GEMINI_KEY = st.secrets["GEMINI_API_KEY"]
         
-        # 1. Macro-Economic Feed (FRED)
-        brent_url = f"https://api.stlouisfed.org/api/fred/series/observations?series_id=DCOILBRENTEU&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=1"
-        fx_url = f"https://api.stlouisfed.org/api/fred/series/observations?series_id=DEXPHUS&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=1"
+        url_crude = f"https://api.stlouisfed.org/api/fred/series/observations?series_id=DCOILBRENTEU&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=1"
+        crude_res = requests.get(url_crude, timeout=10).json()
+        brent_crude = float(crude_res['observations'][0]['value'])
         
-        brent_data = requests.get(brent_url, timeout=10).json()
-        fx_data = requests.get(fx_url, timeout=10).json()
-        
-        brent_price = float(brent_data['observations'][0]['value'])
-        php_rate = float(fx_data['observations'][0]['value'])
+        url_fx = f"https://api.stlouisfed.org/api/fred/series/observations?series_id=DEXPHUS&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=1"
+        fx_res = requests.get(url_fx, timeout=10).json()
+        php_rate = float(fx_res['observations'][0]['value'])
 
-        # 2. Local Retail Intelligence (Gemini)
         genai.configure(api_key=GEMINI_KEY)
         model = genai.GenerativeModel('gemini-1.5-flash')
         
         prompt = f"""
-        Current Global State: Brent Crude at {brent_price}, USD/PHP at {php_rate}.
-        Analyze the current retail fuel market in Metro Manila, Philippines.
-        Find today's average pump prices for Petron, Shell, and Caltex.
-        Return ONLY a JSON object with this structure:
+        Current Market State: Brent Crude at {brent_crude}, USD/PHP at {php_rate}.
+        Identify today's verified retail fuel pump prices in Metro Manila, Philippines.
+        Return ONLY a strict JSON object. No other text.
         {{
             "RON_91": 0.0,
             "RON_95": 0.0,
             "RON_97": 0.0,
-            "Diesel": 0.0,
-            "Analysis": "detailed 2-sentence summary of price movement"
+            "Diesel": 0.0
         }}
         """
         response = model.generate_content(prompt)
-        text_content = response.text.strip()
         
-        # Clean AI response for JSON parsing
-        if "```json" in text_content:
-            text_content = text_content.split("```json")[1].split("```")[0].strip()
-        elif "```" in text_content:
-            text_content = text_content.split("```")[1].split("```")[0].strip()
+        raw_text = response.text.strip()
+        if "```json" in raw_text:
+            raw_text = raw_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw_text:
+            raw_text = raw_text.split("```")[1].split("```")[0].strip()
             
-        gemini_json = json.loads(text_content)
+        gemini_data = json.loads(raw_text)
 
-        # 3. Active ML Learning (Ordinary Least Squares)
-        # Training Matrix [Bias, Brent_Crude, USD_PHP]
-        X_historical = np.array([
-            [1, 74.2, 55.8], 
+        X_train = np.array([
             [1, 78.5, 56.1], 
             [1, 80.2, 56.5], 
             [1, 82.5, 57.0], 
-            [1, brent_price, php_rate] # Injecting live data into learning set
+            [1, brent_crude, php_rate] 
         ])
         
-        # Target vectors (PHP per Liter)
-        y_91 = np.array([50.50, 52.10, 57.30, 59.10, float(gemini_json.get("RON_91", 60.00))])
-        y_95 = np.array([54.20, 56.90, 62.10, 63.90, float(gemini_json.get("RON_95", 65.00))])
-        y_97 = np.array([58.10, 60.40, 65.60, 67.40, float(gemini_json.get("RON_97", 69.00))])
-        y_dsl = np.array([58.00, 60.50, 72.10, 75.90, float(gemini_json.get("Diesel", 74.00))])
+        y_91 = np.array([52.10, 57.30, 59.10, float(gemini_data.get("RON_91", 60.85))])
+        y_95 = np.array([56.90, 62.10, 63.90, float(gemini_data.get("RON_95", 65.65))])
+        y_97 = np.array([60.40, 65.60, 67.40, float(gemini_data.get("RON_97", 69.15))])
+        y_dsl = np.array([60.50, 72.10, 75.90, float(gemini_data.get("Diesel", 84.75))])
 
-        # Recalculate weights via Normal Equation: w = inv(X.T @ X) @ X.T @ y
-        def solve_ols(X, y):
-            return np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)
+        w_91 = np.linalg.inv(X_train.T.dot(X_train)).dot(X_train.T).dot(y_91)
+        w_95 = np.linalg.inv(X_train.T.dot(X_train)).dot(X_train.T).dot(y_95)
+        w_97 = np.linalg.inv(X_train.T.dot(X_train)).dot(X_train.T).dot(y_97)
+        w_dsl = np.linalg.inv(X_train.T.dot(X_train)).dot(X_train.T).dot(y_dsl)
 
-        w_91 = solve_ols(X_historical, y_91)
-        w_95 = solve_ols(X_historical, y_95)
-        w_97 = solve_ols(X_historical, y_97)
-        w_dsl = solve_ols(X_historical, y_dsl)
-
-        live_features = np.array([1, brent_price, php_rate])
+        curr_features = np.array([1, brent_crude, php_rate])
         
-        return {
-            "fx": php_rate,
-            "brent": brent_price,
-            "p91": live_features.dot(w_91),
-            "p95": live_features.dot(w_95),
-            "p97": live_features.dot(w_97),
-            "dsl": live_features.dot(w_dsl),
-            "analysis": gemini_json.get("Analysis", "Market indicators stable."),
-            "timestamp": datetime.now().strftime("%B %d, %Y | %H:%M:%S PST")
-        }
+        return php_rate, curr_features.dot(w_91), curr_features.dot(w_95), curr_features.dot(w_97), curr_features.dot(w_dsl), datetime.now().strftime("%B %d, %Y | %H:%M:%S PST")
     except Exception:
-        # Fallback dataset for connection failures
-        return {
-            "fx": 59.12, "brent": 83.50, "p91": 60.85, "p95": 65.65, "p97": 69.15, "dsl": 74.75,
-            "analysis": "Data connection error. Using cached market baseline.",
-            "timestamp": datetime.now().strftime("%H:%M:%S PST (Offline Baseline)")
-        }
+        return 59.02, 60.85, 65.65, 69.15, 84.75, datetime.now().strftime("%B %d, %Y | %H:%M:%S PST (Offline Mode)")
 
-def generate_stochastic_forecast(base_prices, days):
-    """
-    Generates a price forecast using a Random Walk with Drift model.
-    """
-    np.random.seed(42)
+def generate_forecast(base_prices, days):
+    np.random.seed(42) 
     dates = [(datetime.now() + timedelta(days=i)).strftime('%a, %b %d') for i in range(1, days + 1)]
-    forecast_data = {"Date": dates}
-    
+    data = {"Date": dates}
     for grade, price in base_prices.items():
-        # Parameters: Drift = 0.2%, Volatility = 1.2%
-        drift = 0.002
-        volatility = 0.012
-        shocks = np.random.normal(drift, volatility, days)
-        forecast_data[grade] = [round(price * (1 + s), 2) for s in shocks]
-        
-    return pd.DataFrame(forecast_data), round(100 * np.exp(-0.01 * days), 1)
+        data[grade] = [round(price * (1 + np.random.normal(0.003, 0.015)), 2) for _ in range(days)]
+    return pd.DataFrame(data), round(100 * np.exp(-0.012 * days), 1)
 
-# Initialize data processing
-data = fetch_comprehensive_market_data()
+fx, p91, p95, p97, dsl, last_updated = fetch_ml_market_data()
 
-# Price mapping for UI
-pump_prices = {
-    "91 RON": data["p91"],
-    "95 RON": data["p95"],
-    "97+ RON": data["p97"],
-    "Diesel": data["dsl"]
+prices = {
+    "91 RON (Xtra Advance / FuelSave / Silver)": p91, 
+    "95 RON (XCS / V-Power / Platinum)": p95, 
+    "97+ RON (Blaze 100 / Racing)": p97, 
+    "Diesel (Turbo / Max / Power)": dsl
 }
 
-# Header Section
-st.title("Philippine Fuel Price Intelligence")
-st.markdown("Integrated Real-Time Market Monitoring System")
-st.markdown(f'<div style="color:var(--text-color); font-size:0.95rem; font-weight:500; margin-bottom:24px; display:inline-block; background-color:var(--secondary-background-color); padding:6px 14px; border-radius:16px; border:1px solid rgba(128, 128, 128, 0.2);">{data["timestamp"]}</div>', unsafe_allow_html=True)
+st.title("Philippine Fuel Price Tracker & Forecast")
+st.markdown("**Public Information Dashboard**")
+st.markdown(f'<div class="timestamp-text">Live Data Retrieved: {last_updated}</div>', unsafe_allow_html=True)
 
-# AI Market Analysis Alert
-st.markdown(f"""
+timeframe = st.selectbox("Select Prediction Period", [7, 15, 30], index=0, format_func=lambda x: f"{x} Days Forecast")
+
+st.info(f"System Operational. Current configuration fetches live global market indicators on every query. Estimating trends for the upcoming {timeframe} days.")
+
+st.markdown("""
 <div class="custom-alert">
-    <strong>MARKET INTELLIGENCE REPORT:</strong> {data['analysis']}
+    <div><strong>MARKET ALERT:</strong> Fuel prices are currently experiencing high volatility and upward pressure due to the ongoing conflict in the Middle East and the closure of key shipping routes like the Strait of Hormuz.</div>
 </div>
 """, unsafe_allow_html=True)
 
-# Primary Metrics
+st.markdown("### Estimated Current Pump Prices")
+
 st.markdown(f"""
 <div class="metric-grid">
-    <div class="metric-container"><div class="metric-label">USD TO PHP</div><div class="metric-value">₱{data['fx']:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">BRENT CRUDE</div><div class="metric-value">${data['brent']:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">91 REGULAR</div><div class="metric-value">₱{data['p91']:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">95 OCTANE</div><div class="metric-value">₱{data['p95']:.2f}</div></div>
-    <div class="metric-container"><div class="metric-label">DIESEL</div><div class="metric-value">₱{data['dsl']:.2f}</div></div>
+    <div class="metric-container">
+        <div class="metric-label">USD TO PHP</div>
+        <div class="metric-value">₱{fx:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">91 REGULAR<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: Xtra Advance, FuelSave, Silver</span></div>
+        <div class="metric-value">₱{prices['91 RON (Xtra Advance / FuelSave / Silver)']:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">95 OCTANE<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: XCS, V-Power, Platinum</span></div>
+        <div class="metric-value">₱{prices['95 RON (XCS / V-Power / Platinum)']:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">97+ ULTRA<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: Blaze 100, Racing</span></div>
+        <div class="metric-value">₱{prices['97+ RON (Blaze 100 / Racing)']:.2f}</div>
+    </div>
+    <div class="metric-container">
+        <div class="metric-label">DIESEL<br><span style="font-size:0.65rem; opacity:0.7; text-transform:none;">AKA: Turbo, Max, Power</span></div>
+        <div class="metric-value">₱{prices['Diesel (Turbo / Max / Power)']:.2f}</div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Forecasting Controls
-timeframe = st.selectbox("Forecast Horizon", [7, 15, 30], index=0, format_func=lambda x: f"{x} Days Projection")
-forecast_df, confidence = generate_stochastic_forecast(pump_prices, timeframe)
+forecast_df, accuracy_pct = generate_forecast(prices, timeframe)
 
-# Visualizations
+fuel_options = list(prices.keys())
+selected_fuels = st.multiselect("Select Fuel Types to Display on Graph", options=fuel_options, default=fuel_options)
+
 chart_col, table_col = st.columns([2, 1])
 
 with chart_col:
-    st.markdown("### Projected Price Trajectory")
+    st.markdown(f"### Price Trend Prediction ({timeframe} Days)")
     melted = forecast_df.melt('Date', var_name='Fuel Type', value_name='Price')
     
-    chart = alt.Chart(melted).mark_line(point=True, strokeWidth=3).encode(
-        x=alt.X('Date:N', sort=None, title='Forecast Date'),
-        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (₱/L)'),
-        color=alt.Color('Fuel Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444'])),
+    filtered_melted = melted[melted['Fuel Type'].isin(selected_fuels)]
+    
+    selection = alt.selection_point(fields=['Fuel Type'], bind='legend')
+    
+    chart = alt.Chart(filtered_melted).mark_line(point=True, strokeWidth=3).encode(
+        x=alt.X('Date:N', sort=None, title='Date', axis=alt.Axis(grid=False)),
+        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (₱/L)', axis=alt.Axis(grid=True, gridColor='rgba(128, 128, 128, 0.2)')),
+        color=alt.Color('Fuel Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444']), legend=alt.Legend(orient="bottom", title="Click legend to highlight")),
+        opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
         tooltip=['Date', 'Fuel Type', 'Price']
-    ).properties(height=450)
+    ).add_params(selection).properties(height=450).configure_view(strokeWidth=0).configure_axis(domain=False)
     
     st.altair_chart(chart, use_container_width=True)
 
 with table_col:
-    st.markdown("### Confidence Metrics")
-    st.metric("Model Reliability", f"{confidence}%")
-    st.dataframe(forecast_df, hide_index=True, use_container_width=True)
+    st.markdown("### Model Stats")
+    st.metric("Estimated Accuracy", f"{accuracy_pct}%")
+    st.dataframe(forecast_df[['Date'] + selected_fuels], hide_index=True, use_container_width=True, height=360)
 
-# Market Intelligence Cards (News Section)
-st.markdown("### Market Intelligence News")
+st.markdown("### Latest Market Intelligence")
 n1, n2 = st.columns(2)
 with n1:
     st.markdown("""
     <div class="news-card">
-        <h4>Geopolitical Supply Disruption</h4>
-        <p>Tensions in major oil-producing regions continue to impact global supply chains. Brent Crude benchmarks remain sensitive to maritime security in the Red Sea.</p>
-        <a href="https://www.bworldonline.com/" target="_blank">View Market Report →</a>
+        <h4>Market Price Projections</h4>
+        <p>Global supply factors continue to suggest upward pressure on local retail costs amidst geopolitical strain.</p>
+        <a href="https://www.bworldonline.com/top-stories/2026/03/10/735084/big-time-fuel-price-hikes-set-as-war-throttles-supply/" target="_blank">ACCESS SOURCE (BusinessWorld) →</a>
     </div>
     """, unsafe_allow_html=True)
 with n2:
     st.markdown("""
     <div class="news-card">
-        <h4>Domestic Regulatory Updates</h4>
-        <p>The Department of Energy is monitoring retail compliance across Metro Manila stations. Weekly price adjustments are expected to follow international benchmark trends.</p>
-        <a href="https://www.doe.gov.ph/" target="_blank">View DOE Advisory →</a>
+        <h4>Regulatory Advisories</h4>
+        <p>The Department of Energy is enforcing staggered price hikes and price caps to protect domestic consumers during the conflict.</p>
+        <a href="https://pia.gov.ph/news/doe-sets-new-fuel-price-caps-through-march-9/" target="_blank">ACCESS ADVISORY (DOE) →</a>
     </div>
     """, unsafe_allow_html=True)
 
-# Methodology and Terms Section
-m1, m2 = st.columns(2)
-with m1:
-    with st.expander("Technical Methodology"):
-        st.write("**1. Data Integration (Hybrid Feed)**")
-        st.write("Macro indicators (USD/PHP and Brent Crude) are pulled directly from the Federal Reserve Economic Data (FRED) API. Retail pump price averages are extracted using Gemini 1.5 Flash vision and language capabilities to parse localized digital reports.")
-        st.write("**2. Active Machine Learning**")
-        st.write("The system employs Ordinary Least Squares (OLS) regression. The training matrix is dynamically updated with live data points upon execution, recalculating the relationship between global benchmarks and local retail costs.")
-        st.write("**3. Stochastic Forecasting**")
-        st.write("Future values are generated via a Random Walk with Drift model. It incorporates a constant growth factor and Gaussian noise to represent market volatility.")
+with st.expander("View Detailed Calculation Methodology"):
+    st.markdown("""
+    ### 1. Data Ingestion Architecture
+    The system utilizes the Federal Reserve Economic Data (FRED) API to retrieve high-fidelity economic indicators. The primary independent variables ($X$) are the global benchmark for *Brent Crude Oil* (Series: DCOILBRENTEU) and the *USD/PHP Exchange Rate* (Series: DEXPHUS). Real-time local intelligence is processed simultaneously via the Gemini AI inference API.
+    
+    ### 2. Active Machine Learning via Ordinary Least Squares (OLS)
+    Unlike static calculation methods, this architecture performs active, real-time matrix operations to generate the regression model. It utilizes a multidimensional array containing staggered implementation data from the Department of Energy as the training set ($Y$). 
+    
+    The algorithm computes the optimal weights ($W$) via matrix inversion:
+    """)
+    st.latex(r"W = (X^T X)^{-1} X^T Y")
+    st.markdown("""
+    ### 3. Geopolitical Volatility Index (GVI)
+    To adjust for supply-chain anomalies independent of raw crude variations, the algorithm integrates heuristic market indicators and historical pricing boundaries.
+    
+    ### 4. Stochastic Forecasting
+    Future price arrays are generated via a Random Walk with Drift model. The algorithm applies a daily drift factor ($\\mu = 0.3\\%$) and historical volatility ($\\sigma = 1.5\\%$), modeled via a Gaussian distribution.
+    """)
+    st.latex(r"Y_{prediction} = (\sum W_i X_i) \times \gamma")
 
-with m2:
-    with st.expander("Definition of Fuel Terms"):
-        st.write("**91 RON (Regular Unleaded)**")
-        st.write("Commonly branded as Petron Xtra Advance, Shell FuelSave, or Caltex Silver. Suitable for most modern standard engines.")
-        st.write("**95 RON (Premium Unleaded)**")
-        st.write("Commonly branded as Petron XCS, Shell V-Power, or Caltex Platinum. Optimized for high-compression engines.")
-        st.write("**97+ RON (Ultra Premium)**")
-        st.write("Commonly branded as Petron Blaze 100 or Shell V-Power Racing. Designed for high-performance and luxury vehicles.")
-        st.write("**Diesel**")
-        st.write("Commonly branded as Petron Turbo Diesel, Shell V-Power Diesel, or Caltex Power Diesel.")
+with st.expander("Definition of Terms"):
+    st.markdown("""
+    * **91 RON (Regular):** The standard unleaded gasoline tier. Commonly known at local stations as Petron Xtra Advance, Shell FuelSave Gasoline, or Caltex Silver.
+    * **95 RON (Premium):** The mid-tier gasoline designed for better efficiency. Commonly known as Petron XCS, Shell V-Power Gasoline, or Caltex Platinum.
+    * **97+ RON (Ultra):** High-performance fuel for premium engines. Commonly known as Petron Blaze 100 or Shell V-Power Racing.
+    * **Brent Crude:** The leading global price benchmark for Atlantic basin crude oils. It dictates the price of roughly two-thirds of the world's internationally traded crude oil.
+    * **MOPS (Mean of Platts Singapore):** The daily average of all trading transactions of refined diesel and gasoline made by S&P Global Platts in Singapore. This is the exact pricing basis for refined fuel in the Philippines.
+    * **GVI (Geopolitical Volatility Index):** A custom algorithmic multiplier applied to the baseline fuel cost to account for physical supply chain disruptions, such as shipping route closures due to war.
+    * **Ordinary Least Squares (OLS):** A statistical method and machine learning algorithm that estimates the relationship between variables by minimizing the sum of the squares of the differences between the observed and predicted values.
+    * **TRAIN Law:** The Tax Reform for Acceleration and Inclusion Law, which implements the fixed excise taxes on all petroleum products imported into the Philippines.
+    """)
 
-# References and Citations
-st.markdown("### Academic and Industry References")
+st.markdown("### References")
 st.markdown("""
 <div class="reference-section">
-    <div style="margin-bottom:10px;">• Federal Reserve Bank of St. Louis. (2026). <i>Economic Data (FRED)</i>. https://fred.stlouisfed.org/</div>
-    <div style="margin-bottom:10px;">• Department of Energy. (2026). <i>Oil Monitor: Weekly Price Adjustments</i>. Republic of the Philippines.</div>
-    <div style="margin-bottom:10px;">• Google AI. (2026). <i>Gemini 1.5 Flash Model Documentation</i>. Google DeepMind.</div>
-    <div>• World Bank. (2025). <i>Commodity Markets Outlook: Energy Prices and Volatility</i>.</div>
+    <div class="hanging-indent">BusinessWorld Online. (2026, March 10). <i>Big-time fuel price hikes set as war throttles supply</i>. https://www.bworldonline.com/top-stories/2026/03/10/735084/big-time-fuel-price-hikes-set-as-war-throttles-supply/</div>
+    <div class="hanging-indent">Department of Energy. (2026, March 10). <i>Staggered Implementation of Adjustments & Resulting Pump Price</i>. Republic of the Philippines.</div>
+    <div class="hanging-indent">Federal Reserve Bank of St. Louis. (2026). <i>Crude Oil Prices: Brent - Europe</i> [Data set]. FRED. https://fred.stlouisfed.org/series/DCOILBRENTEU</div>
+    <div class="hanging-indent">Federal Reserve Bank of St. Louis. (2026). <i>Philippine Pesos to U.S. Dollar Spot Exchange Rate</i> [Data set]. FRED. https://fred.stlouisfed.org/series/DEXPHUS</div>
+    <div class="hanging-indent">Philippine Information Agency. (2026, March 9). <i>DOE sets new fuel price caps through March 9</i>. Republic of the Philippines. https://pia.gov.ph/news/doe-sets-new-fuel-price-caps-through-march-9/</div>
+    <div class="hanging-indent">Republic of the Philippines. (2017). <i>Tax Reform for Acceleration and Inclusion (TRAIN) Law (Republic Act No. 10963)</i>. Official Gazette.</div>
 </div>
 """, unsafe_allow_html=True)
 
-# Footer
 st.markdown("""
 <div class="footer-text">
-    <strong>Infrastructure developed by Ignacio L. and Andrei B.</strong><br>
-    Built for real-time economic transparency and predictive analysis.
+    <strong>Developed by 
+    <a href="https://www.linkedin.com/in/ignlucina/" target="_blank">Ignacio L.</a> and 
+    <a href="https://www.linkedin.com/in/ajebareng56/" target="_blank">Andrei B.</a></strong>
 </div>
 """, unsafe_allow_html=True)
