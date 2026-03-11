@@ -54,16 +54,22 @@ def inject_custom_css():
 
         .metric-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
             margin-bottom: 32px;
             margin-top: 12px;
+        }
+        
+        @media (min-width: 768px) {
+            .metric-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
         
         .metric-container {
             background-color: var(--secondary-background-color);
             border: 1px solid rgba(128, 128, 128, 0.15);
-            padding: 24px 16px;
+            padding: 20px 12px;
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
@@ -76,7 +82,6 @@ def inject_custom_css():
         .metric-container:nth-child(2) { animation-delay: 0.15s; }
         .metric-container:nth-child(3) { animation-delay: 0.25s; }
         .metric-container:nth-child(4) { animation-delay: 0.35s; }
-        .metric-container:nth-child(5) { animation-delay: 0.45s; }
         
         .metric-container:hover { 
             transform: translateY(-4px); 
@@ -96,7 +101,7 @@ def inject_custom_css():
         
         .metric-value { 
             color: var(--text-color); 
-            font-size: 2.1rem; 
+            font-size: 1.8rem; 
             font-weight: 800; 
             line-height: 1.1; 
             letter-spacing: -0.03em;
@@ -169,6 +174,17 @@ def inject_custom_css():
         .news-card a:hover { 
             color: #2563eb; 
             text-decoration: underline; 
+        }
+        
+        .reference-section { 
+            font-size: 0.85rem; 
+            color: var(--text-color); 
+            opacity: 0.8; 
+            padding: 28px; 
+            background-color: var(--secondary-background-color); 
+            border-radius: 8px; 
+            border: 1px solid rgba(128, 128, 128, 0.15); 
+            line-height: 1.7; 
         }
         
         .footer-text { 
@@ -403,10 +419,6 @@ def render_metric_dashboard(market_data):
 
     st.markdown(f"""
     <div class="metric-grid">
-        <div class="metric-container">
-            <div class="metric-label">USD TO PHP</div>
-            <div class="metric-value">₱{market_data['fx']:.2f}</div>
-        </div>
         <div class="metric-container">
             <div class="metric-label">
                 91 REGULAR
