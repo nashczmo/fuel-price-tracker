@@ -518,7 +518,7 @@ st.markdown(f'<div class="timestamp-text"><span class="pulse-dot"></span> As of 
 
 st.markdown("""
 <div class="custom-alert">
-    <strong>MARKET ALERT:</strong> Global fuel prices remain volatile. Changes in international shipping routes, currency exchange fluctuations, and raw crude oil supplies directly impact local pump pricing in the Philippines.
+    <strong>MARKET ALERT:</strong> Market Alert: Conflict in the Middle East may affect global oil supply, which could lead to possible fuel price increases.
 </div>
 """, unsafe_allow_html=True)
 
@@ -582,3 +582,4 @@ with news_column_2:
 
 render_educational_expanders()
 render_footer()
+
