@@ -23,7 +23,6 @@ st.markdown("""
         margin-top: 8px;
     }
     
-    /* Animation Keyframes for the Rising Effect */
     @keyframes riseUp {
         0% { opacity: 0; transform: translateY(30px); }
         100% { opacity: 1; transform: translateY(0); }
@@ -37,11 +36,10 @@ st.markdown("""
         text-align: center;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: transform 0.2s ease, border-color 0.2s ease;
-        opacity: 0; /* Start hidden for animation */
+        opacity: 0;
         animation: riseUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
-    /* Staggered Animation Delays */
     .metric-container:nth-child(1) { animation-delay: 0.1s; }
     .metric-container:nth-child(2) { animation-delay: 0.2s; }
     .metric-container:nth-child(3) { animation-delay: 0.3s; }
@@ -138,7 +136,7 @@ fx, p95, dsl, last_updated = fetch_ml_market_data()
 prices = {"91 Regular": p95 - 2.15, "95 Octane": p95, "97+ Ultra": p95 + 7.80, "Diesel": dsl}
 
 st.title("Philippine Fuel Price Tracker & Forecast")
-st.markdown("**Public Information Dashboard | Real-Time ML Architecture**")
+st.markdown("**Public Information Dashboard**")
 st.markdown(f'<div class="timestamp-text">Live Data Retrieved: {last_updated}</div>', unsafe_allow_html=True)
 
 timeframe = st.selectbox("Select Prediction Period", [7, 15, 30], index=0, format_func=lambda x: f"{x} Days Forecast")
@@ -253,6 +251,6 @@ st.markdown("""
 <div class="footer-text">
     <strong>Developed by 
     <a href="https://www.linkedin.com/in/ignlucina/" target="_blank">Ignacio L.</a> and 
-    <a href="https://www.linkedin.com/in/aje-bareng/" target="_blank">Andrei B.</a></strong>
+    <a href="https://www.linkedin.com/in/ajebareng56/" target="_blank">Andrei B.</a></strong>
 </div>
 """, unsafe_allow_html=True)
