@@ -5,7 +5,7 @@ import altair as alt
 from datetime import datetime, timedelta
 import numpy as np
 
-# --- 1. Dashboard Configuration & Restored Layout ---
+# --- 1. Dashboard Configuration ---
 st.set_page_config(page_title="Fuel Price Tracker", layout="wide")
 
 st.markdown("""
@@ -14,7 +14,6 @@ st.markdown("""
     
     .main { background-color: #0e1117; font-family: 'Inter', sans-serif; }
     
-    /* Restored wide PC Metric Grid */
     .metric-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -70,7 +69,6 @@ def fetch_market_data():
         oil_res = requests.get(oil_url, headers=headers, timeout=10).json()
         gas_raw, dsl_raw = oil_res['data'][0]['price'], oil_res['data'][1]['price']
         
-        # Calculation: (Barrel / 158.98 liters) * FX * 1.35 multiplier + Fixed Taxes
         gas_base = ((gas_raw / 158.98) * php_rate * 1.35) + 18.50
         diesel_base = ((dsl_raw / 158.98) * php_rate * 1.35) + 13.50
         return php_rate, gas_base, diesel_base, datetime.now().strftime("%B %d, %Y")
@@ -93,17 +91,15 @@ st.title("Philippine Fuel Price Tracker & Forecast")
 st.markdown("**Public Information Dashboard**")
 st.markdown(f'<div class="timestamp-text">Data as of: {last_updated}</div>', unsafe_allow_html=True)
 
-# Select Prediction Period
 timeframe = st.selectbox("Select Prediction Period", [7, 15, 30], index=0, format_func=lambda x: f"{x} Days")
 
-# RESTORED SUMMARY
+# Optimized Summary
 st.info(f"Summary: Estimates current pump prices in the Philippines based on global oil markets. Predicts trend variance for the upcoming {timeframe} days.")
 
-# NEW WAR WARNING BOX
-st.warning("⚠️ **MARKET ALERT:** Fuel prices are currently experiencing high volatility and upward pressure due to the ongoing conflict in the Middle East and the closure of key shipping routes like the Strait of Hormuz.", icon="⚠️")
+# Fixed Market Alert
+st.warning("**MARKET ALERT:** Fuel prices are currently experiencing high volatility and upward pressure due to the ongoing conflict in the Middle East and the closure of key shipping routes like the Strait of Hormuz.")
 
 st.subheader("Estimated Current Pump Prices")
-# Metric Grid (Restored Wide View)
 st.markdown(f"""
 <div class="metric-grid">
     <div class="metric-container"><div class="metric-label">USD TO PHP</div><div class="metric-value">₱{fx:.2f}</div></div>
@@ -114,7 +110,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Forecast Graphics (Wide Screen Layout)
 forecast_df, accuracy_pct = generate_forecast(prices, timeframe)
 chart_col, table_col = st.columns([2, 1])
 
@@ -135,28 +130,27 @@ with table_col:
     st.write("Predicted Daily Prices")
     st.dataframe(forecast_df, hide_index=True, use_container_width=True, height=350)
 
-# News Feed
 st.subheader("Latest News")
 n1, n2 = st.columns(2)
 with n1:
     st.markdown('<div class="news-card"><h4>Market Price Projections</h4><p>Global supply factors continue to suggest upward pressure on local retail costs.</p><a href="https://www.bworldonline.com/top-stories/2026/03/10/735084/big-time-fuel-price-hikes-set-as-war-throttles-supply/" target="_blank">SOURCE</a></div>', unsafe_allow_html=True)
 with n2:
-    st.markdown('<div class="news-card"><h4>Regulatory Advisories</h4><p>The Department of Energy is enforcing staggered price hikes to protect domestic consumers during the conflict.</p><a href="https://doe.gov.ph/articles/3358435" target="_blank">ADVISORY</a></div>', unsafe_allow_html=True)
+    st.markdown('<div class="news-card"><h4>Regulatory Advisories</h4><p>The Department of Energy is monitoring global triggers and enforcing staggered price hikes.</p><a href="https://doe.gov.ph/articles/3358435" target="_blank">ADVISORY</a></div>', unsafe_allow_html=True)
 
-# --- Detailed Methodology (APA 7th) ---
+# Methodology
 with st.expander("View Detailed Calculation Methodology"):
     st.markdown("""
-    ### 1. Data Collection & Source Reliability
-    The dashboard operates a multi-stream data pipeline to ingest energy and currency benchmarks. Benchmark prices for *RBOB Gasoline* and *Ultra Low Sulfur Diesel (ULSD)* are retrieved via the **Oil Price API** (2026). Simultaneously, current USD to PHP valuations are pulled from the **Open Exchange Rates API** (2026). These sources represent the industry standard for real-time commodity and FX data.
+    ### 1. Data Collection & Processing
+    The system utilizes an automated data pipeline to retrieve real-time energy benchmarks and currency valuations. Benchmark prices for *RBOB Gasoline* and *Ultra Low Sulfur Diesel (ULSD)* are sourced via the **Oil Price API** (2026), while the **Open Exchange Rates API** (2026) provides current USD/PHP valuations.
     
-    ### 2. Retail Price Derivation & Tax Loading
-    The conversion from global crude benchmarks to local pump prices follows a rigid three-stage process:
-    * **Volumetric Normalization:** Global prices are quoted in US barrels ($P_{barrel}$). These are converted to liters by dividing by the international standard of 158.98 liters per barrel.
-    * **Logistical Loading:** Due to the heighted conflict in the Middle East, a risk-adjusted multiplier of **1.35x** is applied. This covers maritime freight, insurance premiums (war risk), and landed cost adjustments for Philippine terminals.
-    * **Statutory Compliance:** Prices incorporate fixed Excise Taxes and 12% Value Added Tax (VAT) as mandated by the *Tax Reform for Acceleration and Inclusion (TRAIN) Law* (Republic of the Philippines, 2017).
+    ### 2. Algorithmic Retail Price Derivation
+    The conversion from global barrel benchmarks to local pump prices follows a standardized three-stage derivation:
+    * **Volumetric Conversion:** Crude prices are normalized from standard barrels to liters using the 158.98 ratio.
+    * **Risk & Logistical Loading:** A multiplier of **1.35x** is applied to represent war risk insurance premiums, maritime freight, and landed cost adjustments for Philippine terminals.
+    * **Taxation:** Calculations incorporate Excise Taxes and 12% Value Added Tax (VAT) as per the *Tax Reform for Acceleration and Inclusion (TRAIN) Law* (Republic of the Philippines, 2017).
     
-    ### 3. Predictive Forecasting Model
-    The 7, 15, and 30-day trends are generated using a **Stochastic Drift Model** (Random Walk with Drift). The model calculates the trajectory using a daily drift ($\mu$) based on current inflation and an annual volatility ($\sigma$) factor, modeled through a normal distribution to simulate potential market shocks.
+    ### 3. Predictive Modeling
+    The forecast is generated using a **Stochastic Drift Model** (Random Walk with Drift). It incorporates a daily market drift ($\mu$) and an annual volatility coefficient ($\sigma$) to simulate potential market shocks.
     """)
     st.latex(r"P_{retail} = \left[ \left( \frac{P_{barrel}}{158.98} \times FX_{rate} \right) \times 1.35 \right] + \text{Taxes} + \text{Margin}")
 
