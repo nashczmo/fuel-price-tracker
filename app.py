@@ -17,8 +17,8 @@ def inject_custom_css():
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
-        /* Enforce Inter Font Globally */
-        html, body, [class*="css"], .stApp, .stApp div, .stApp span, .stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, .stApp label {
+        /* Enforce Inter Font without breaking Streamlit icon ligatures */
+        .stApp, p, h1, h2, h3, h4, h5, h6, label, [data-testid="stMarkdownContainer"] {
             font-family: 'Inter', sans-serif !important;
         }
 
@@ -253,6 +253,7 @@ def inject_custom_css():
             text-transform: uppercase;
         }
 
+        /* Fix Expander Font Rendering and Layout */
         [data-testid="stExpander"] {
             background-color: transparent;
             border: 1px solid #1f2937;
@@ -263,6 +264,15 @@ def inject_custom_css():
             color: #f8fafc;
             font-weight: 600;
             padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        [data-testid="stExpander"] summary span.material-symbols-rounded {
+            font-family: 'Material Symbols Rounded' !important;
+        }
+        [data-testid="stExpander"] summary svg {
+            margin-right: 8px;
         }
         [data-testid="stExpanderDetails"] {
             color: #94a3b8;
@@ -277,6 +287,7 @@ def inject_custom_css():
             padding-bottom: 32px;
             font-size: 0.85rem;
             color: #64748b;
+            line-height: 1.8;
         }
         .footer a {
             color: #3b82f6;
@@ -533,8 +544,10 @@ with st.expander("Definition of Fuel Types"):
     * **Diesel:** Standard automotive gas oil. Equivalent to Petron Turbo Diesel, Shell V-Power Diesel, and Caltex Power Diesel.
     """)
 
-st.markdown("""
+st.markdown(f"""
     <div class="footer">
-        Developed by <a href="#">Ignacio L.</a> and <a href="#">Andrei B.</a>
+        Developed by <a href="https://linkedin.com/in/" target="_blank">Ignacio L.</a> and <a href="https://linkedin.com/in/" target="_blank">Andrei B.</a>
+        <br>
+        &copy; {datetime.now().year} FuelTrack. All rights reserved.
     </div>
 """, unsafe_allow_html=True)
