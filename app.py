@@ -5,417 +5,370 @@ import altair as alt
 from datetime import datetime, timedelta
 import numpy as np
 import math
+import logging
 
 st.set_page_config(
-    page_title="FuelTrack",
+    page_title="Fuel Price Tracker",
+    page_icon="⛟",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-def inject_custom_css():
+def apply_minimalist_css():
+    """Injects core structural CSS for a high-contrast, minimalist UI."""
     st.markdown("""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        .stApp {
-            background-color: #0d1117;
+        html, body, [class*="css"] {
             font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
             color: #c9d1d9;
         }
         
         header {visibility: hidden;}
-        #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         .block-container {
             padding-top: 2rem;
-            padding-bottom: 2rem;
-            max-width: 1400px;
+            max-width: 1200px;
         }
 
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 20px;
-            padding: 8px 16px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #c9d1d9;
-            margin-bottom: 8px;
-        }
-        .pulse-dot {
-            height: 8px;
-            width: 8px;
-            background-color: #10b981;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .cache-info {
-            font-size: 0.75rem;
-            color: #6e7681;
-            margin-bottom: 32px;
-            margin-left: 4px;
+        .metric-container {
             display: flex;
-            align-items: center;
-        }
-        .cache-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 14px;
-            height: 14px;
-            border: 1px solid #6e7681;
-            border-radius: 50%;
-            font-size: 0.6rem;
-            font-weight: bold;
-            margin-right: 6px;
-        }
-
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-        .metric-card {
+            flex-direction: column;
             background-color: #161b22;
             border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 32px 24px;
-            text-align: center;
-        }
-        .metric-label {
-            color: #8b949e;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-        }
-        .metric-value {
-            color: #fff;
-            font-size: 2.5rem;
-            font-weight: 800;
-            line-height: 1;
-            margin: 16px 0;
-        }
-        .metric-sub {
-            color: #6e7681;
-            font-size: 0.7rem;
-            margin-top: 8px;
-        }
-
-        .panel-container {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
+            border-radius: 6px;
             padding: 24px;
-            height: 100%;
-        }
-        .panel-title {
-            color: #fff;
-            font-size: 1.15rem;
-            font-weight: 700;
             margin-bottom: 24px;
         }
 
-        .intel-label { color: #8b949e; font-size: 0.85rem; margin-bottom: 8px; }
-        .intel-value { color: #10b981; font-size: 2.5rem; font-weight: 700; margin-bottom: 24px; line-height: 1;}
-        .intel-meta { color: #8b949e; font-size: 0.85rem; line-height: 1.6; }
+        .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #8b949e;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
 
-        .news-card {
+        .metric-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .metric-subtext {
+            font-size: 0.7rem;
+            color: #6e7681;
+        }
+
+        .alert-banner {
+            border-left: 3px solid #d29922;
+            background-color: rgba(210, 153, 34, 0.1);
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #c9d1d9;
+            margin-bottom: 32px;
+        }
+
+        .section-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 8px;
+            margin-top: 32px;
+            margin-bottom: 24px;
+        }
+
+        .data-card {
             background-color: #161b22;
             border: 1px solid #30363d;
-            border-top: 4px solid #3b82f6;
-            padding: 24px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            border-radius: 6px;
+            padding: 20px;
             height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        .news-card h4 { margin: 0 0 12px 0; font-size: 1.1rem; color: #fff; }
-        .news-card p { margin: 0 0 20px 0; font-size: 0.9rem; color: #8b949e; flex-grow: 1; }
-        .news-card a { color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
-
-        div[data-testid="stExpander"] { background-color: #161b22; border-color: #30363d; border-radius: 8px; color: #c9d1d9; }
-        div[data-baseweb="select"] > div { background-color: #161b22; border-color: #30363d; color: #c9d1d9; }
-        
-        .footer-text { 
-            color: #6e7681; 
-            font-size: 0.9rem; 
-            margin-top: 60px; 
-            text-align: center; 
-            border-top: 1px solid #30363d; 
-            padding-top: 30px; 
-            padding-bottom: 30px;
         }
 
-        .custom-alert {
-            background-color: rgba(234, 179, 8, 0.1);
-            border-left: 4px solid #eab308;
-            border-radius: 4px;
-            padding: 16px 24px;
-            margin-bottom: 32px;
+        .data-card h4 {
             font-size: 0.95rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .data-card p {
+            font-size: 0.85rem;
+            color: #8b949e;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .data-card a {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #58a6ff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .timestamp-display {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #8b949e;
+            margin-bottom: 24px;
+        }
+
+        div[data-testid="stExpander"] {
+            background-color: transparent;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+        }
+        
+        div[data-testid="stExpander"] summary p {
+            font-weight: 500;
             color: #c9d1d9;
         }
         </style>
     """, unsafe_allow_html=True)
 
-def initialize_session_state():
-    if 'last_market_data' not in st.session_state:
-        st.session_state.last_market_data = {
+def initialize_cache():
+    """Initializes persistent session state variables for fallback mechanisms."""
+    if 'market_baseline' not in st.session_state:
+        st.session_state.market_baseline = {
             "fx": 56.10, "p91": 72.35, "p95": 74.50, "p97": 82.30, "dsl": 75.10,
-            "timestamp": datetime.now().strftime("%I:%M:%S %p PST")
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
-    if 'last_news_data' not in st.session_state:
-        st.session_state.last_news_data = [
-            {"title": "Global Market Pressures", "description": "International supply chains influence domestic retail costs. Read the attached report for a detailed breakdown.", "link": "#", "source": "System"},
-            {"title": "Regulatory Oversight", "description": "Government agencies monitor local price adjustments to ensure compliance with national economic guidelines.", "link": "#", "source": "System"}
+    if 'news_baseline' not in st.session_state:
+        st.session_state.news_baseline = [
+            {"title": "Market Data Unavailable", "description": "Live news feed is currently disconnected. Attempting to re-establish connection.", "link": "#", "source": "System"},
+            {"title": "Regulatory Status", "description": "Awaiting upstream data from regulatory endpoints.", "link": "#", "source": "System"}
         ]
 
-@st.cache_data(ttl=300)
-def compute_linear_regression(brent_price, php_rate):
-    historical_features = np.array([[1, 74.2, 55.8], [1, 78.5, 56.1], [1, 80.2, 56.5], [1, 82.5, 57.0]])
-    historical_targets_91 = np.array([50.50, 52.10, 57.30, 59.10])
-    historical_targets_95 = np.array([54.20, 56.90, 62.10, 63.90])
-    historical_targets_97 = np.array([58.10, 60.40, 65.60, 67.40])
-    historical_targets_dsl = np.array([58.00, 60.50, 72.10, 75.90])
-
-    def resolve_matrix(X, y): 
-        return np.linalg.inv(X.T.dot(X)).dot(X.T.dot(y))
-        
-    weights_91 = resolve_matrix(historical_features, historical_targets_91)
-    weights_95 = resolve_matrix(historical_features, historical_targets_95)
-    weights_97 = resolve_matrix(historical_features, historical_targets_97)
-    weights_dsl = resolve_matrix(historical_features, historical_targets_dsl)
-
-    current_input_vector = np.array([1, brent_price, php_rate])
+@st.cache_data(ttl=300, show_spinner=False)
+def execute_linear_regression(brent_val: float, fx_val: float) -> dict:
+    """Computes closed-form linear regression utilizing static historical tensors."""
+    X_matrix = np.array([
+        [1, 74.2, 55.8], 
+        [1, 78.5, 56.1], 
+        [1, 80.2, 56.5], 
+        [1, 82.5, 57.0]
+    ])
     
-    return {
-        "p91": current_input_vector.dot(weights_91),
-        "p95": current_input_vector.dot(weights_95),
-        "p97": current_input_vector.dot(weights_97),
-        "dsl": current_input_vector.dot(weights_dsl)
+    y_vectors = {
+        "p91": np.array([50.50, 52.10, 57.30, 59.10]),
+        "p95": np.array([54.20, 56.90, 62.10, 63.90]),
+        "p97": np.array([58.10, 60.40, 65.60, 67.40]),
+        "dsl": np.array([58.00, 60.50, 72.10, 75.90])
     }
 
-@st.cache_data(ttl=300)
-def fetch_comprehensive_market_data():
+    def compute_weights(X, y):
+        return np.linalg.inv(X.T.dot(X)).dot(X.T.dot(y))
+
+    input_vector = np.array([1, brent_val, fx_val])
+    predicted_outputs = {}
+    
+    for key, y_target in y_vectors.items():
+        weights = compute_weights(X_matrix, y_target)
+        predicted_outputs[key] = input_vector.dot(weights)
+        
+    return predicted_outputs
+
+@st.cache_data(ttl=300, show_spinner=False)
+def retrieve_market_telemetry() -> dict:
+    """Fetches macroeconomic indicators from external APIs."""
     try:
-        fred_api_key = st.secrets.get("FRED_API_KEY", "")
-        if not fred_api_key: return st.session_state.last_market_data
+        api_key = st.secrets.get("FRED_API_KEY")
+        if not api_key:
+            return st.session_state.market_baseline
 
-        response_brent = requests.get(f"https://api.stlouisfed.org/api/fred/series/observations?series_id=DCOILBRENTEU&api_key={fred_api_key}&file_type=json&sort_order=desc&limit=1", timeout=10)
-        response_fx = requests.get(f"https://api.stlouisfed.org/api/fred/series/observations?series_id=DEXPHUS&api_key={fred_api_key}&file_type=json&sort_order=desc&limit=1", timeout=10)
+        req_brent = requests.get(f"https://api.stlouisfed.org/api/fred/series/observations?series_id=DCOILBRENTEU&api_key={api_key}&file_type=json&sort_order=desc&limit=1", timeout=5)
+        req_fx = requests.get(f"https://api.stlouisfed.org/api/fred/series/observations?series_id=DEXPHUS&api_key={api_key}&file_type=json&sort_order=desc&limit=1", timeout=5)
         
-        if response_brent.status_code != 200 or response_fx.status_code != 200: return st.session_state.last_market_data
+        if req_brent.status_code == 200 and req_fx.status_code == 200:
+            val_brent = float(req_brent.json()['observations'][0]['value'])
+            val_fx = float(req_fx.json()['observations'][0]['value'])
             
-        current_brent_price = float(response_brent.json()['observations'][0]['value'])
-        current_php_rate = float(response_fx.json()['observations'][0]['value'])
-        computed_prices = compute_linear_regression(current_brent_price, current_php_rate)
+            computed_matrix = execute_linear_regression(val_brent, val_fx)
+            
+            payload = {
+                "fx": val_fx,
+                "p91": computed_matrix["p91"],
+                "p95": computed_matrix["p95"],
+                "p97": computed_matrix["p97"],
+                "dsl": computed_matrix["dsl"],
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            st.session_state.market_baseline = payload
+            return payload
+            
+    except Exception as e:
+        logging.error(f"Telemetry failure: {e}")
         
-        final_data_object = {
-            "fx": current_php_rate, "p91": computed_prices["p91"], "p95": computed_prices["p95"], 
-            "p97": computed_prices["p97"], "dsl": computed_prices["dsl"],
-            "timestamp": datetime.now().strftime("%I:%M:%S %p PST")
-        }
-        st.session_state.last_market_data = final_data_object
-        return final_data_object
-    except Exception:
-        return st.session_state.last_market_data
+    return st.session_state.market_baseline
 
-@st.cache_data(ttl=10800)
-def fetch_news_data():
+@st.cache_data(ttl=3600, show_spinner=False)
+def retrieve_news_telemetry() -> list:
+    """Fetches relevant geopolitical news strings."""
     try:
-        newsdata_api_key = st.secrets.get("NEWSDATA_API_KEY", "")
-        if not newsdata_api_key: return st.session_state.last_news_data
+        api_key = st.secrets.get("NEWSDATA_API_KEY")
+        if not api_key:
+            return st.session_state.news_baseline
 
-        response_news = requests.get(f"https://newsdata.io/api/1/latest?apikey={newsdata_api_key}&q=fuel%20price%20OR%20oil%20price&country=ph&language=en", timeout=10)
-        if response_news.status_code != 200: return st.session_state.last_news_data
-            
-        articles_array = response_news.json().get("results", [])
-        if not articles_array: return st.session_state.last_news_data
-            
-        formatted_news_list = []
-        for article_object in articles_array[:2]:
-            desc = str(article_object.get("description") or "Access the source document directly for comprehensive data.")
-            if len(desc) > 160: desc = desc[:160] + "..."
-            formatted_news_list.append({
-                "title": article_object.get("title", "Market Update"),
-                "description": desc,
-                "link": article_object.get("link", "#"),
-                "source": str(article_object.get("source_id", "News Source")).capitalize()
-            })
+        req_news = requests.get(f"https://newsdata.io/api/1/latest?apikey={api_key}&q=fuel%20price%20OR%20oil%20price&country=ph&language=en", timeout=5)
         
-        while len(formatted_news_list) < 2: formatted_news_list.append(st.session_state.last_news_data[1])
-        st.session_state.last_news_data = formatted_news_list
-        return formatted_news_list
-    except Exception:
-        return st.session_state.last_news_data
+        if req_news.status_code == 200:
+            articles = req_news.json().get("results", [])
+            if articles:
+                parsed_data = []
+                for item in articles[:2]:
+                    desc = str(item.get("description") or "No description provided by source.")
+                    if len(desc) > 120: desc = desc[:120] + "..."
+                    
+                    parsed_data.append({
+                        "title": item.get("title", "Market Update"),
+                        "description": desc,
+                        "link": item.get("link", "#"),
+                        "source": str(item.get("source_id", "System")).upper()
+                    })
+                
+                while len(parsed_data) < 2:
+                    parsed_data.append(st.session_state.news_baseline[1])
+                    
+                st.session_state.news_baseline = parsed_data
+                return parsed_data
+                
+    except Exception as e:
+        logging.error(f"News fetch failure: {e}")
+        
+    return st.session_state.news_baseline
 
-def generate_forecast_dataframe(base_prices, forecast_horizon_days=7):
+def generate_stochastic_forecast(prices: dict, horizon: int) -> tuple:
+    """Executes a random walk simulation for predictive modeling."""
     np.random.seed(42)
-    generation_dates = [(datetime.now() + timedelta(days=i)).strftime('%b %d') for i in range(1, forecast_horizon_days + 1)]
-    stochastic_data = {"Date": generation_dates}
+    dates = [(datetime.now() + timedelta(days=i)).strftime('%m-%d') for i in range(1, horizon + 1)]
+    matrix = {"Date": dates}
     
-    for fuel_grade, current_price in base_prices.items():
-        daily_price_shocks = np.random.normal(0.002, 0.012, forecast_horizon_days)
-        stochastic_data[fuel_grade] = [round(current_price * (1 + shock_value), 2) for shock_value in daily_price_shocks]
+    for grade, base_val in prices.items():
+        noise = np.random.normal(0.001, 0.008, horizon)
+        trajectory = []
+        current = base_val
+        for factor in noise:
+            current = current * (1 + factor)
+            trajectory.append(round(current, 2))
+        matrix[grade] = trajectory
         
-    return pd.DataFrame(stochastic_data), round(100 * math.exp(-0.01 * forecast_horizon_days), 1)
+    confidence = round(100 * math.exp(-0.015 * horizon), 1)
+    return pd.DataFrame(matrix), confidence
 
-def build_interactive_chart(forecast_df, selected_columns):
-    melted_dataframe = forecast_df.melt('Date', var_name='Fuel Type', value_name='Price')
-    filtered_dataframe = melted_dataframe[melted_dataframe['Fuel Type'].isin(selected_columns)]
+def render_ui():
+    """Main rendering execution block."""
+    inject_custom_css()
+    initialize_cache()
     
-    line_chart = alt.Chart(filtered_dataframe).mark_line(point=True, strokeWidth=2).encode(
-        x=alt.X('Date:N', sort=None, title=None, axis=alt.Axis(grid=False, labelColor='#8b949e')),
-        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (₱/L)', axis=alt.Axis(grid=True, gridColor='#30363d', labelColor='#8b949e', titleColor='#8b949e')),
-        color=alt.Color('Fuel Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444']), legend=alt.Legend(orient="bottom", title=None, labelColor='#c9d1d9')),
-        tooltip=['Date', 'Fuel Type', 'Price']
-    ).properties(height=350).configure_view(strokeWidth=0).configure_axis(domain=False)
-    
-    st.altair_chart(line_chart, use_container_width=True)
+    market_data = retrieve_market_telemetry()
+    news_data = retrieve_news_telemetry()
 
+    price_map = {
+        "91 RON": market_data["p91"],
+        "95 RON": market_data["p95"],
+        "97 RON": market_data["p97"],
+        "Diesel": market_data["dsl"]
+    }
 
-inject_custom_css()
-initialize_session_state()
+    st.markdown("## Fuel Price Intelligence")
+    st.markdown(f'<div class="timestamp-display">DATA SYNC: {market_data["timestamp"]}</div>', unsafe_allow_html=True)
 
-live_market_data = fetch_comprehensive_market_data()
-live_news_data = fetch_news_data()
-
-structured_pump_prices = {
-    "91 RON (Xtra Advance / FuelSave / Silver)": live_market_data["p91"],
-    "95 RON (XCS / V-Power / Platinum)": live_market_data["p95"],
-    "97+ RON (Blaze 100 / Racing)": live_market_data["p97"],
-    "Diesel (Turbo / Max / Power)": live_market_data["dsl"]
-}
-
-st.markdown(f"""
-    <div class="status-badge">
-        <span class="pulse-dot"></span> Initialization Sequence... As of {live_market_data['timestamp']}
-    </div>
-    <div class="cache-info">
-        <span class="cache-icon">i</span> The displayed timestamp reflects the last server synchronization. Updates are cached for 300 seconds to prevent API rate limit exhaustion.
-    </div>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<div class="custom-alert">
-    <strong>MARKET ALERT:</strong> Conflict in the Middle East may affect global oil supply, which could lead to possible fuel price increases.
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown(f"""
-    <div class="metric-grid">
-        <div class="metric-card">
-            <div class="metric-label">91 REGULAR</div>
-            <div class="metric-value">₱{live_market_data['p91']:.2f}</div>
-            <div class="metric-sub">Xtra Advance, FuelSave</div>
+    st.markdown("""
+        <div class="alert-banner">
+            <strong>SYSTEM ADVISORY:</strong> Geopolitical shifts may introduce high volatility to short-term pricing models.
         </div>
-        <div class="metric-card">
-            <div class="metric-label">95 OCTANE</div>
-            <div class="metric-value">₱{live_market_data['p95']:.2f}</div>
-            <div class="metric-sub">XCS, V-Power</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">97+ ULTRA</div>
-            <div class="metric-value">₱{live_market_data['p97']:.2f}</div>
-            <div class="metric-sub">Blaze 100, Racing</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">DIESEL</div>
-            <div class="metric-value">₱{live_market_data['dsl']:.2f}</div>
-            <div class="metric-sub">Turbo, Power Diesel</div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-col_sel1, col_sel2 = st.columns(2)
-
-with col_sel1:
-    user_selected_timeframe = st.selectbox(
-        "Select Prediction Period", 
-        [7, 15, 30], 
-        index=0, 
-        format_func=lambda x: f"{x} Days Forecast"
-    )
-
-available_fuel_options = list(structured_pump_prices.keys())
-with col_sel2:
-    user_selected_fuels = st.multiselect(
-        "Select Fuel Types to Display on Graph", 
-        options=available_fuel_options, 
-        default=available_fuel_options
-    )
-
-generated_forecast_dataframe, model_confidence = generate_forecast_dataframe(structured_pump_prices, user_selected_timeframe)
-
-col1, col2 = st.columns([2.5, 1])
-
-with col1:
-    st.markdown(f"""
-        <div class="panel-container">
-            <div class="panel-title">Price Trend Prediction ({user_selected_timeframe} Days)</div>
     """, unsafe_allow_html=True)
-    
-    build_interactive_chart(generated_forecast_dataframe, user_selected_fuels)
-    
-    st.markdown("</div>", unsafe_allow_html=True)
 
-with col2:
-    st.markdown(f"""
-        <div class="panel-container">
-            <div class="panel-title">System Intelligence</div>
-            <div class="intel-label">Model Confidence</div>
-            <div class="intel-value">{model_confidence}%</div>
-            <div class="intel-meta">
-                <strong>Architecture:</strong> Server-Side Linear Regression & Stochastic Walk<br>
-                <strong>Status:</strong> <span style="color:#eab308;">Live / Optimized</span>
+    c1, c2, c3, c4 = st.columns(4)
+    
+    def render_metric(col, label, value, subtext):
+        col.markdown(f"""
+            <div class="metric-container">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">₱{value:.2f}</div>
+                <div class="metric-subtext">{subtext}</div>
             </div>
+        """, unsafe_allow_html=True)
+
+    render_metric(c1, "91 RON", market_data['p91'], "Standard / Regular")
+    render_metric(c2, "95 RON", market_data['p95'], "Premium / Mid-Grade")
+    render_metric(c3, "97+ RON", market_data['p97'], "Ultra / High-Performance")
+    render_metric(c4, "Diesel", market_data['dsl'], "Commercial / Heavy Duty")
+
+    st.markdown('<div class="section-header">Predictive Analytics</div>', unsafe_allow_html=True)
+
+    ctrl_c1, ctrl_c2 = st.columns([1, 2])
+    horizon = ctrl_c1.selectbox("Forecast Horizon", [7, 14, 30], format_func=lambda x: f"{x} Days")
+    selected_fuels = ctrl_c2.multiselect("Active Series", options=list(price_map.keys()), default=list(price_map.keys()))
+
+    if not selected_fuels:
+        st.warning("Select at least one series to render graph.")
+        return
+
+    df_forecast, confidence = generate_stochastic_forecast(price_map, horizon)
+    
+    chart_col, data_col = st.columns([3, 1])
+
+    with chart_col:
+        df_melt = df_forecast.melt('Date', var_name='Type', value_name='Price')
+        df_filtered = df_melt[df_melt['Type'].isin(selected_fuels)]
+        
+        chart = alt.Chart(df_filtered).mark_line(point=True, strokeWidth=2).encode(
+            x=alt.X('Date:N', axis=alt.Axis(grid=False, labelColor='#8b949e', title=None)),
+            y=alt.Y('Price:Q', scale=alt.Scale(zero=False), axis=alt.Axis(grid=True, gridColor='#30363d', labelColor='#8b949e', title='Estimated (₱)')),
+            color=alt.Color('Type:N', scale=alt.Scale(range=['#3fb950', '#58a6ff', '#bc8cff', '#f85149']), legend=alt.Legend(orient="bottom", title=None, labelColor='#c9d1d9')),
+            tooltip=['Date', 'Type', 'Price']
+        ).properties(height=350).configure_view(strokeWidth=0).configure_axis(domain=False)
+        
+        st.altair_chart(chart, use_container_width=True)
+
+    with data_col:
+        st.markdown(f"""
+            <div class="data-card" style="margin-bottom: 16px;">
+                <div style="font-size: 0.75rem; color: #8b949e; text-transform: uppercase; margin-bottom: 4px;">Confidence Interval</div>
+                <div style="font-size: 2rem; font-weight: 700; color: #3fb950; margin-bottom: 8px;">{confidence}%</div>
+                <div style="font-size: 0.75rem; color: #6e7681; line-height: 1.4;">Based on historical variance and selected horizon length.</div>
+            </div>
+        """, unsafe_allow_html=True)
+        st.dataframe(df_forecast[['Date'] + selected_fuels], hide_index=True, use_container_width=True, height=200)
+
+    st.markdown('<div class="section-header">Market Context</div>', unsafe_allow_html=True)
+    
+    n1, n2 = st.columns(2)
+    
+    n1.markdown(f"""
+        <div class="data-card">
+            <h4>{news_data[0]['title']}</h4>
+            <p>{news_data[0]['description']}</p>
+            <a href="{news_data[0]['link']}" target="_blank">View Source [{news_data[0]['source']}]</a>
         </div>
     """, unsafe_allow_html=True)
     
+    n2.markdown(f"""
+        <div class="data-card">
+            <h4>{news_data[1]['title']}</h4>
+            <p>{news_data[1]['description']}</p>
+            <a href="{news_data[1]['link']}" target="_blank">View Source [{news_data[1]['source']}]</a>
+        </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("<br>", unsafe_allow_html=True)
-    display_columns = ['Date'] + user_selected_fuels
-    st.dataframe(generated_forecast_dataframe[display_columns], hide_index=True, use_container_width=True, height=220)
+    with st.expander("System Documentation"):
+        st.markdown("""
+            * **Data Aggregation:** Telemetry ingested via St. Louis Fed API (DCOILBRENTEU, DEXPHUS).
+            * **Estimation Engine:** Closed-form linear regression utilizing historical correlation matrices.
+            * **Forward Projection:** Stochastic Random Walk simulation applying gaussian noise to calculate probable divergence paths over defined horizons.
+        """)
 
-st.markdown("<br><h3>Latest Market Intelligence</h3>", unsafe_allow_html=True)
-news_col1, news_col2 = st.columns(2)
-
-with news_col1:
-    st.markdown(f"""
-    <div class="news-card">
-        <h4>{live_news_data[0]['title']}</h4>
-        <p>{live_news_data[0]['description']}</p>
-        <a href="{live_news_data[0]['link']}" target="_blank">ACCESS SOURCE ({live_news_data[0]['source']})</a>
-    </div>
-    """, unsafe_allow_html=True)
-
-with news_col2:
-    st.markdown(f"""
-    <div class="news-card">
-        <h4>{live_news_data[1]['title']}</h4>
-        <p>{live_news_data[1]['description']}</p>
-        <a href="{live_news_data[1]['link']}" target="_blank">ACCESS SOURCE ({live_news_data[1]['source']})</a>
-    </div>
-    """, unsafe_allow_html=True)
-
-with st.expander("How We Calculate Our Data (Methodology)"):
-    st.write("**1. Data Gathering:** The system continuously pulls live economic numbers directly from the Federal Reserve database. Specifically, it monitors the current price of Brent Crude oil globally and the exact conversion rate between the US Dollar and the Philippine Peso. It simultaneously gathers verified local news articles regarding market shifts.")
-    st.write("**2. Calculating Today's Prices:** We use a statistical method known as Linear Regression. By analyzing how past fuel prices in the Philippines reacted to historical changes in global oil prices, the system identifies a core pattern. It applies this historical pattern to today's global numbers to calculate a highly accurate estimate of the current local pump prices.")
-    st.write("**3. Predicting Future Prices:** To forecast prices for the next 7 to 30 days, the application uses a Stochastic Random Walk simulation. This means the model assumes prices will naturally drift upward over time due to inflation, while randomly adding minor daily fluctuations to mimic the unpredictable nature of the real-world stock market.")
-
-with st.expander("Definition of Fuel Types"):
-    st.write("**91 RON (Regular Gas):** The standard unleaded gasoline tier. You will commonly see this sold as Petron Xtra Advance, Shell FuelSave, or Caltex Silver. It is the most economical choice and suitable for standard everyday driving.")
-    st.write("**95 RON (Premium Gas):** The mid-tier gasoline designed to provide better engine efficiency and cleaning agents. Common brand names include Petron XCS, Shell V-Power, and Caltex Platinum.")
-    st.write("**97+ RON (Ultra Premium):** High-performance fuel engineered with maximum octane ratings to prevent engine knocking. Common names include Petron Blaze 100 and Shell V-Power Racing. This is specifically required for sports cars and high-end luxury vehicles.")
-    st.write("**Diesel:** The standard compression-ignition fuel used by trucks, SUVs, and commercial vehicles. Common names include Petron Turbo Diesel, Shell V-Power Diesel, and Caltex Power Diesel.")
-
-st.markdown("""
-<div class="footer-text">
-    <strong>Developed by <a href="https://www.linkedin.com/in/ignlucina/" target="_blank" style="color: #3b82f6;">Ignacio L.</a> and <a href="https://www.linkedin.com/in/ajebareng56/" target="_blank" style="color: #3b82f6;">Andrei B.</a></strong>
-</div>
-""", unsafe_allow_html=True)
+if __name__ == "__main__":
+    render_ui()
