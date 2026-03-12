@@ -33,9 +33,9 @@ def inject_custom_css():
         .block-container {
             padding-top: 2rem !important;
             padding-bottom: 2rem !important;
-            padding-left: 5% !important;
-            padding-right: 5% !important;
-            max-width: 1400px !important;
+            padding-left: 4% !important;
+            padding-right: 4% !important;
+            max-width: 1550px !important;
         }
 
         .main-title {
@@ -213,11 +213,13 @@ def inject_custom_css():
             text-align: right;
             padding: 12px 8px;
             border-bottom: 1px solid #374151;
+            white-space: nowrap;
         }
         .static-table td {
             text-align: right;
             padding: 12px 8px;
             border-bottom: 1px solid #1f2937;
+            white-space: nowrap;
         }
         .static-table th:first-child, .static-table td:first-child {
             text-align: left;
@@ -353,6 +355,10 @@ def inject_custom_css():
             .info-tooltip .tooltip-text {
                 width: 240px;
                 margin-left: -120px;
+            }
+            .static-table {
+                display: block;
+                overflow-x: auto;
             }
         }
         </style>
