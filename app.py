@@ -33,9 +33,9 @@ def inject_custom_css():
         .block-container {
             padding-top: 2rem !important;
             padding-bottom: 2rem !important;
-            padding-left: 2rem !important;
-            padding-right: 2rem !important;
-            max-width: 100% !important;
+            padding-left: 5% !important;
+            padding-right: 5% !important;
+            max-width: 1400px !important;
         }
 
         .main-title {
@@ -284,8 +284,8 @@ def inject_custom_css():
         
         .footer {
             text-align: center;
-            margin-top: 80px;
-            padding-bottom: 32px;
+            margin-top: 32px;
+            padding-bottom: 24px;
             font-size: 0.85rem;
             color: #64748b;
             line-height: 1.8;
@@ -530,7 +530,6 @@ with col2:
     st.markdown('<div class="stat-label">Estimated Accuracy</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="stat-value">{model_confidence}%</div>', unsafe_allow_html=True)
     
-    # Calculate explicit height to prevent internal scrollbar. Row height ~35px + Header height ~38px.
     table_height = (days_forecast + 2) * 36
     
     st.dataframe(
@@ -587,7 +586,7 @@ with st.expander("Definition of Fuel Types"):
 
 st.markdown(f"""
     <div class="footer">
-        Developed by <a href="https://linkedin.com/in/" target="_blank">Ignacio L.</a> and <a href="https://linkedin.com/in/" target="_blank">Andrei B.</a>
+        Developed by 12th grade students <a href="https://www.linkedin.com/in/ignlucina/" target="_blank">Ignacio L.</a> and <a href="https://www.linkedin.com/in/ajebareng56/" target="_blank">Andrei B.</a>
         <br>
         &copy; {datetime.now().year} FuelTrack. All rights reserved.
     </div>
