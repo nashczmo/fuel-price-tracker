@@ -30,6 +30,7 @@ def inject_custom_css():
         [data-testid="stHeader"] {display: none;}
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
+        
         .block-container {
             padding-top: 2rem !important;
             padding-bottom: 2rem;
@@ -253,7 +254,6 @@ def inject_custom_css():
             text-transform: uppercase;
         }
 
-        /* Fix Expander Font Rendering and Layout */
         [data-testid="stExpander"] {
             background-color: transparent;
             border: 1px solid #1f2937;
@@ -293,6 +293,43 @@ def inject_custom_css():
             color: #3b82f6;
             text-decoration: none;
             font-weight: 600;
+        }
+
+        /* Mobile Optimization Media Queries */
+        @media (max-width: 768px) {
+            .block-container {
+                padding-top: 1rem !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .main-title {
+                font-size: 1.6rem;
+            }
+            .metric-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .metric-card {
+                padding: 20px 12px;
+            }
+            .metric-value {
+                font-size: 1.8rem;
+            }
+            .metric-label {
+                font-size: 0.65rem;
+                margin-bottom: 8px;
+            }
+            .metric-sub {
+                font-size: 0.65rem;
+                margin-top: 8px;
+            }
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+            .info-tooltip .tooltip-text {
+                width: 240px;
+                margin-left: -120px;
+            }
         }
         </style>
     """, unsafe_allow_html=True)
