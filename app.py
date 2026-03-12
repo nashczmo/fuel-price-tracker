@@ -27,54 +27,19 @@ def inject_custom_css():
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         .block-container {
-            padding-top: 0rem;
-            padding-bottom: 0rem;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
             max-width: 1400px;
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 24px;
-            background-color: #161b22;
-            border-bottom: 1px solid #30363d;
-            margin-bottom: 32px;
-            margin-left: -4rem;
-            margin-right: -4rem;
-        }
-        .nav-brand { font-weight: 800; font-size: 1.25rem; color: #fff; letter-spacing: -0.5px; }
-        .nav-links { display: flex; gap: 32px; }
-        .nav-link { 
-            color: #8b949e; 
-            text-decoration: none; 
-            font-weight: 600; 
-            font-size: 0.85rem; 
-            padding-bottom: 16px;
-            margin-bottom: -17px;
-        }
-        .nav-link.active { 
-            color: #3b82f6; 
-            border-bottom: 2px solid #3b82f6; 
-        }
-        .clock {
-            font-family: monospace;
-            font-size: 0.85rem;
-            color: #8b949e;
-            border: 1px solid #30363d;
-            padding: 4px 12px;
-            border-radius: 6px;
-            background: #0d1117;
         }
 
         .status-badge {
             display: inline-flex;
             align-items: center;
-            background-color: transparent;
+            background-color: #161b22;
             border: 1px solid #30363d;
             border-radius: 20px;
-            padding: 6px 16px;
-            font-size: 0.8rem;
+            padding: 8px 16px;
+            font-size: 0.85rem;
             font-weight: 600;
             color: #c9d1d9;
             margin-bottom: 8px;
@@ -91,7 +56,7 @@ def inject_custom_css():
             font-size: 0.75rem;
             color: #6e7681;
             margin-bottom: 32px;
-            margin-left: 8px;
+            margin-left: 4px;
             display: flex;
             align-items: center;
         }
@@ -108,16 +73,6 @@ def inject_custom_css():
             margin-right: 6px;
         }
 
-        .custom-alert {
-            background-color: rgba(234, 179, 8, 0.1);
-            border-left: 4px solid #eab308;
-            border-radius: 4px;
-            padding: 16px 24px;
-            margin-bottom: 32px;
-            font-size: 0.95rem;
-            color: #c9d1d9;
-        }
-
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -128,27 +83,27 @@ def inject_custom_css():
             background-color: #161b22;
             border: 1px solid #30363d;
             border-radius: 8px;
-            padding: 24px;
+            padding: 32px 24px;
             text-align: center;
         }
         .metric-label {
             color: #8b949e;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         .metric-value {
             color: #fff;
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             font-weight: 800;
             line-height: 1;
-            margin: 12px 0;
+            margin: 16px 0;
         }
         .metric-sub {
             color: #6e7681;
-            font-size: 0.65rem;
-            margin-top: 4px;
+            font-size: 0.7rem;
+            margin-top: 8px;
         }
 
         .panel-container {
@@ -160,14 +115,14 @@ def inject_custom_css():
         }
         .panel-title {
             color: #fff;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 700;
             margin-bottom: 24px;
         }
 
         .intel-label { color: #8b949e; font-size: 0.85rem; margin-bottom: 8px; }
         .intel-value { color: #10b981; font-size: 2.5rem; font-weight: 700; margin-bottom: 24px; line-height: 1;}
-        .intel-meta { color: #8b949e; font-size: 0.8rem; line-height: 1.6; }
+        .intel-meta { color: #8b949e; font-size: 0.85rem; line-height: 1.6; }
 
         .news-card {
             background-color: #161b22;
@@ -184,7 +139,7 @@ def inject_custom_css():
         .news-card p { margin: 0 0 20px 0; font-size: 0.9rem; color: #8b949e; flex-grow: 1; }
         .news-card a { color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
 
-        div[data-testid="stExpander"] { background-color: #161b22; border-color: #30363d; border-radius: 8px; }
+        div[data-testid="stExpander"] { background-color: #161b22; border-color: #30363d; border-radius: 8px; color: #c9d1d9; }
         div[data-baseweb="select"] > div { background-color: #161b22; border-color: #30363d; color: #c9d1d9; }
         
         .footer-text { 
@@ -195,6 +150,16 @@ def inject_custom_css():
             border-top: 1px solid #30363d; 
             padding-top: 30px; 
             padding-bottom: 30px;
+        }
+
+        .custom-alert {
+            background-color: rgba(234, 179, 8, 0.1);
+            border-left: 4px solid #eab308;
+            border-radius: 4px;
+            padding: 16px 24px;
+            margin-bottom: 32px;
+            font-size: 0.95rem;
+            color: #c9d1d9;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -314,6 +279,7 @@ def build_interactive_chart(forecast_df, selected_columns):
     
     st.altair_chart(line_chart, use_container_width=True)
 
+
 inject_custom_css()
 initialize_session_state()
 
@@ -326,17 +292,6 @@ structured_pump_prices = {
     "97+ RON (Blaze 100 / Racing)": live_market_data["p97"],
     "Diesel (Turbo / Max / Power)": live_market_data["dsl"]
 }
-
-st.markdown(f"""
-    <div class="navbar">
-        <div class="nav-brand">FuelTrack</div>
-        <div class="nav-links">
-            <div class="nav-link active">Dashboard</div>
-            <div class="nav-link">Logistics Calculator</div>
-        </div>
-        <div class="clock">{live_market_data['timestamp']}</div>
-    </div>
-""", unsafe_allow_html=True)
 
 st.markdown(f"""
     <div class="status-badge">
@@ -378,26 +333,41 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-user_selected_timeframe = st.selectbox(
-    "Select Prediction Period", 
-    [7, 15, 30], 
-    index=0, 
-    format_func=lambda x: f"{x} Days Forecast"
-)
+col_sel1, col_sel2 = st.columns(2)
+
+with col_sel1:
+    user_selected_timeframe = st.selectbox(
+        "Select Prediction Period", 
+        [7, 15, 30], 
+        index=0, 
+        format_func=lambda x: f"{x} Days Forecast"
+    )
+
+available_fuel_options = list(structured_pump_prices.keys())
+with col_sel2:
+    user_selected_fuels = st.multiselect(
+        "Select Fuel Types to Display on Graph", 
+        options=available_fuel_options, 
+        default=available_fuel_options
+    )
 
 generated_forecast_dataframe, model_confidence = generate_forecast_dataframe(structured_pump_prices, user_selected_timeframe)
-available_fuel_options = list(structured_pump_prices.keys())
-user_selected_fuels = st.multiselect("Select Fuel Types to Display on Graph", options=available_fuel_options, default=available_fuel_options)
 
 col1, col2 = st.columns([2.5, 1])
 
 with col1:
-    st.markdown(f"### Price Trend Prediction ({user_selected_timeframe} Days)")
+    st.markdown(f"""
+        <div class="panel-container">
+            <div class="panel-title">Price Trend Prediction ({user_selected_timeframe} Days)</div>
+    """, unsafe_allow_html=True)
+    
     build_interactive_chart(generated_forecast_dataframe, user_selected_fuels)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""
-        <div class="panel-container" style="margin-top: 40px; margin-bottom: 20px;">
+        <div class="panel-container">
             <div class="panel-title">System Intelligence</div>
             <div class="intel-label">Model Confidence</div>
             <div class="intel-value">{model_confidence}%</div>
@@ -408,10 +378,11 @@ with col2:
         </div>
     """, unsafe_allow_html=True)
     
+    st.markdown("<br>", unsafe_allow_html=True)
     display_columns = ['Date'] + user_selected_fuels
     st.dataframe(generated_forecast_dataframe[display_columns], hide_index=True, use_container_width=True, height=220)
 
-st.markdown("### Latest Market Intelligence")
+st.markdown("<br><h3>Latest Market Intelligence</h3>", unsafe_allow_html=True)
 news_col1, news_col2 = st.columns(2)
 
 with news_col1:
