@@ -61,7 +61,6 @@ def inject_custom_css():
             margin-right: 8px;
         }
 
-        /* Tooltip CSS */
         .info-tooltip {
             position: relative;
             display: inline-flex;
@@ -199,7 +198,6 @@ def inject_custom_css():
             background-color: transparent;
         }
 
-        /* News Cards */
         .news-header {
             font-size: 1.5rem;
             font-weight: 700;
@@ -252,7 +250,6 @@ def inject_custom_css():
             text-transform: uppercase;
         }
 
-        /* Expanders Override */
         [data-testid="stExpander"] {
             background-color: transparent;
             border: 1px solid #1f2937;
@@ -271,7 +268,6 @@ def inject_custom_css():
             padding: 0 16px 16px 16px;
         }
         
-        /* Footer */
         .footer {
             text-align: center;
             margin-top: 80px;
@@ -287,6 +283,15 @@ def inject_custom_css():
         </style>
     """, unsafe_allow_html=True)
 
+# Pre-computed inverse matrix components to eliminate redundant np.linalg.inv calls
+HISTORICAL_FEATURES = np.array([[1, 74.2, 55.8], [1, 78.5, 56.1], [1, 80.2, 56.5], [1, 82.5, 57.0]])
+INV_MATRIX = np.linalg.inv(HISTORICAL_FEATURES.T.dot(HISTORICAL_FEATURES)).dot(HISTORICAL_FEATURES.T)
+
+WEIGHTS_91 = INV_MATRIX.dot(np.array([50.50, 52.10, 57.30, 59.10]))
+WEIGHTS_95 = INV_MATRIX.dot(np.array([54.20, 56.90, 62.10, 63.90]))
+WEIGHTS_97 = INV_MATRIX.dot(np.array([58.10, 60.40, 65.60, 67.40]))
+WEIGHTS_DSL = INV_MATRIX.dot(np.array([58.00, 60.50, 72.10, 75.90]))
+
 def initialize_session_state():
     if 'last_market_data' not in st.session_state:
         st.session_state.last_market_data = {
@@ -294,44 +299,39 @@ def initialize_session_state():
             "timestamp": datetime.now().strftime("%I:%M:%S %p")
         }
 
-@st.cache_data(ttl=300)
 def compute_linear_regression(brent_price, php_rate):
-    historical_features = np.array([[1, 74.2, 55.8], [1, 78.5, 56.1], [1, 80.2, 56.5], [1, 82.5, 57.0]])
-    historical_targets_91 = np.array([50.50, 52.10, 57.30, 59.10])
-    historical_targets_95 = np.array([54.20, 56.90, 62.10, 63.90])
-    historical_targets_97 = np.array([58.10, 60.40, 65.60, 67.40])
-    historical_targets_dsl = np.array([58.00, 60.50, 72.10, 75.90])
-
-    def resolve_matrix(X, y): 
-        return np.linalg.inv(X.T.dot(X)).dot(X.T.dot(y))
-        
-    weights_91 = resolve_matrix(historical_features, historical_targets_91)
-    weights_95 = resolve_matrix(historical_features, historical_targets_95)
-    weights_97 = resolve_matrix(historical_features, historical_targets_97)
-    weights_dsl = resolve_matrix(historical_features, historical_targets_dsl)
-
-    current_input_vector = np.array([1, brent_price, php_rate])
-    
+    current_input = np.array([1, brent_price, php_rate])
     return {
-        "p91": current_input_vector.dot(weights_91),
-        "p95": current_input_vector.dot(weights_95),
-        "p97": current_input_vector.dot(weights_97),
-        "dsl": current_input_vector.dot(weights_dsl)
+        "p91": current_input.dot(WEIGHTS_91),
+        "p95": current_input.dot(WEIGHTS_95),
+        "p97": current_input.dot(WEIGHTS_97),
+        "dsl": current_input.dot(WEIGHTS_DSL)
     }
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=600, show_spinner=False)
 def fetch_comprehensive_market_data():
     try:
-        fred_api_key = st.secrets.get("FRED_API_KEY", "")
+        fred_api_key = st.secrets.get("FRED_API_KEY", None)
         if not fred_api_key: return st.session_state.last_market_data
 
-        response_brent = requests.get(f"https://api.stlouisfed.org/api/fred/series/observations?series_id=DCOILBRENTEU&api_key={fred_api_key}&file_type=json&sort_order=desc&limit=1", timeout=10)
-        response_fx = requests.get(f"https://api.stlouisfed.org/api/fred/series/observations?series_id=DEXPHUS&api_key={fred_api_key}&file_type=json&sort_order=desc&limit=1", timeout=10)
+        # Reduced timeout to 3 seconds to prevent long blocks if API is unresponsive
+        req_params = {"api_key": fred_api_key, "file_type": "json", "sort_order": "desc", "limit": 1}
         
-        if response_brent.status_code != 200 or response_fx.status_code != 200: return st.session_state.last_market_data
+        response_brent = requests.get(
+            "https://api.stlouisfed.org/api/fred/series/observations?series_id=DCOILBRENTEU", 
+            params=req_params, timeout=3
+        )
+        response_fx = requests.get(
+            "https://api.stlouisfed.org/api/fred/series/observations?series_id=DEXPHUS", 
+            params=req_params, timeout=3
+        )
+        
+        if response_brent.status_code != 200 or response_fx.status_code != 200: 
+            return st.session_state.last_market_data
             
         current_brent_price = float(response_brent.json()['observations'][0]['value'])
         current_php_rate = float(response_fx.json()['observations'][0]['value'])
+        
         computed_prices = compute_linear_regression(current_brent_price, current_php_rate)
         
         final_data_object = {
@@ -341,13 +341,14 @@ def fetch_comprehensive_market_data():
         }
         st.session_state.last_market_data = final_data_object
         return final_data_object
-    except Exception:
+    except requests.exceptions.RequestException:
         return st.session_state.last_market_data
 
+@st.cache_data(ttl=3600, show_spinner=False)
 def generate_forecast_dataframe(base_prices, forecast_horizon_days=7):
     np.random.seed(42)
-    generation_dates = [(datetime.now() + timedelta(days=i)).strftime('%a, %b %d') for i in range(1, forecast_horizon_days + 1)]
-    stochastic_data = {"Date": generation_dates}
+    current_time = datetime.now()
+    generation_dates = [(current_time + timedelta(days=i)).strftime('%a, %b %d') for i in range(1, forecast_horizon_days + 1)]
     
     mapping = {
         "91": "91 RON (Xtra Advance / FuelSave / Silver)",
@@ -356,15 +357,19 @@ def generate_forecast_dataframe(base_prices, forecast_horizon_days=7):
         "dsl": "Diesel (Turbo / Max / Power)"
     }
     
+    stochastic_data = {"Date": generation_dates}
     for fuel_grade, current_price in base_prices.items():
         daily_price_shocks = np.random.normal(0.002, 0.012, forecast_horizon_days)
-        stochastic_data[mapping[fuel_grade]] = [round(current_price * (1 + shock_value), 2) for shock_value in daily_price_shocks]
+        cumulative_shocks = np.cumprod(1 + daily_price_shocks)
+        stochastic_data[mapping[fuel_grade]] = np.round(current_price * cumulative_shocks, 2)
         
-    return pd.DataFrame(stochastic_data), round(100 * math.exp(-0.01 * forecast_horizon_days), 1)
+    df = pd.DataFrame(stochastic_data)
+    confidence = round(100 * math.exp(-0.01 * forecast_horizon_days), 1)
+    return df, confidence
 
 def build_interactive_chart(forecast_df, selected_fuels):
     if not selected_fuels:
-        st.warning("Please select at least one fuel type to display.")
+        st.warning("Select at least one fuel type.")
         return
 
     plot_df = forecast_df[["Date"] + selected_fuels]
@@ -508,15 +513,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.expander("How We Calculate Our Data (Methodology)"):
-    st.markdown("""
+    st.markdown(r"""
     **Data Ingestion & Aggregation**
     The system interfaces with the Federal Reserve Economic Data (FRED) API to retrieve real-time macroeconomic indicators. Specifically, it tracks the continuous contract for Brent Crude Oil (`DCOILBRENTEU`) and the United States Dollar to Philippine Peso exchange rate (`DEXPHUS`).
     
     **Price Determination Algorithm**
-    Base pump prices are computed utilizing a multiple linear regression model optimized via Ordinary Least Squares (OLS). The algorithm resolves the normal equation $\\beta = (X^T X)^{-1} X^T y$ against historical pricing matrices to isolate the precise scalar weights of global crude variations and forex fluctuations on local retail prices. The resulting coefficient vector is multiplied by real-time market inputs to produce the estimated current price per liter.
+    Base pump prices are computed utilizing a multiple linear regression model optimized via Ordinary Least Squares (OLS). The algorithm resolves the normal equation $\beta = (X^T X)^{-1} X^T y$ against historical pricing matrices to isolate the precise scalar weights of global crude variations and forex fluctuations on local retail prices. The resulting coefficient vector is multiplied by real-time market inputs to produce the estimated current price per liter.
     
     **Predictive Forecasting Architecture**
-    Future trend projection operates on a Stochastic Random Walk model. The simulation maps future price trajectories by applying daily percentage shocks drawn from a normal distribution $\\mathcal{N}(\\mu=0.002, \\sigma=0.012)$, which accounts for standard market volatility and inherent supply-chain latency. Model confidence accuracy decays exponentially relative to the length of the forecast horizon.
+    Future trend projection operates on a Stochastic Random Walk model. The simulation maps future price trajectories by applying daily percentage shocks drawn from a normal distribution $\mathcal{N}(\mu=0.002, \sigma=0.012)$, which accounts for standard market volatility and inherent supply-chain latency. Cumulative variance limits model accuracy exponentially over extended horizons.
     """)
 
 with st.expander("Definition of Fuel Types"):
