@@ -42,7 +42,7 @@ def inject_custom_css():
             font-size: 2.2rem;
             font-weight: 800;
             color: #ffffff;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             letter-spacing: -0.5px;
         }
 
@@ -415,7 +415,7 @@ def fetch_live_news():
         return fallback_news
 
 def analyze_news_sentiment(articles):
-    # NLP Lexical Analysis to influence drift based on global news sentiment
+    # Scan the news words to influence our predictions up or down
     bullish_words = ['increase', 'surge', 'hike', 'rally', 'jump', 'conflict', 'war', 'shortage', 'cut', 'opec', 'soar']
     bearish_words = ['drop', 'fall', 'decrease', 'rollback', 'slump', 'ease', 'surplus', 'plunge', 'cheaper', 'suspend']
     
@@ -427,7 +427,7 @@ def analyze_news_sentiment(articles):
         for word in bearish_words:
             if word in text: score -= 0.003
             
-    # Cap the sentiment bias to avoid wildly unrealistic projections (-1.5% to +1.5% daily drift variance)
+    # Cap how much the news affects the graph so it doesn't get too crazy
     return max(min(score, 0.015), -0.015)
 
 @st.cache_data(ttl=300, show_spinner=False)
@@ -445,7 +445,7 @@ def generate_forecast_dataframe(base_prices, forecast_horizon_days, sentiment_bi
     
     stochastic_data = {"Date": generation_dates}
     
-    # Base daily drift is 0.2%, modified by real-time NLP sentiment analysis from latest news
+    # Add our news sentiment score to the math model
     adjusted_drift = 0.002 + sentiment_bias
     
     for fuel_grade, current_price in base_prices.items():
@@ -499,12 +499,12 @@ structured_pump_prices = {
 # UI Rendering
 st.markdown('<div class="main-title">Philippine Fuel Price Tracker</div>', unsafe_allow_html=True)
 
-# Generate custom alert message based on sentiment
-alert_msg = "MARKET ALERT: NLP sentiment analysis indicates significant market volatility based on breaking news."
+# Generate custom alert message in simpler terms
+alert_msg = "MARKET ALERT: Recent news suggests fuel prices might change soon."
 if sentiment_bias > 0.005:
-    alert_msg = "MARKET ALERT: High probability of fuel price increases detected based on real-time global news sentiment."
+    alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO UP soon."
 elif sentiment_bias < -0.005:
-    alert_msg = "MARKET ALERT: Price rollbacks anticipated soon based on bearish market signals from global news."
+    alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO DOWN soon."
 
 st.markdown(f"""
     <div class="alert-box">
@@ -514,7 +514,6 @@ st.markdown(f"""
 
 st.markdown('<div class="section-title">Estimated Current Pump Prices</div>', unsafe_allow_html=True)
 
-# Moved the time-badge under the estimated current prices heading
 current_time_str = datetime.now().strftime("%B %d, %Y | %I:%M %p PST")
 st.markdown(f"""
     <div class="time-badge">
@@ -523,7 +522,7 @@ st.markdown(f"""
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24">
                 <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
             </svg>
-            <span class="tooltip-text"><strong>Live Data Synchronization:</strong> Prices update every 5 minutes utilizing global macroeconomic indicators and breaking news sentiment.</span>
+            <span class="tooltip-text"><strong>Live Updates:</strong> Prices automatically update every 5 minutes by checking global oil trends and scanning breaking news.</span>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -579,8 +578,8 @@ with col1:
     build_interactive_chart(generated_forecast_dataframe, selected_fuels)
 
 with col2:
-    st.markdown('<div class="sub-header">Model Stats</div>', unsafe_allow_html=True)
-    st.markdown('<div class="stat-label">Estimated Accuracy</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Prediction System</div>', unsafe_allow_html=True)
+    st.markdown('<div class="stat-label">Accuracy Estimate</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="stat-value">{model_confidence}%</div>', unsafe_allow_html=True)
     
     short_col_names = {
@@ -609,7 +608,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Dynamically generate HTML for the fetched live news
+# Generate HTML for the fetched live news WITHOUT indentation to prevent markdown bugs
 news_html = '<div class="news-grid">'
 for article in live_news:
     title = article.get('title', 'Market Update')
@@ -619,36 +618,25 @@ for article in live_news:
     url = article.get('url', '#')
     source = article.get('source', {}).get('name', 'NEWS SOURCE')
     
-    news_html += f"""
-        <div class="news-card">
-            <div>
-                <div class="news-title">{title}</div>
-                <div class="news-body">{desc}</div>
-            </div>
-            <a href="{url}" target="_blank" class="news-link">ACCESS SOURCE ({source.upper()})</a>
-        </div>
-    """
+    news_html += f'<div class="news-card"><div><div class="news-title">{title}</div><div class="news-body">{desc}</div></div><a href="{url}" target="_blank" class="news-link">READ MORE ({source.upper()})</a></div>'
 news_html += '</div>'
 st.markdown(news_html, unsafe_allow_html=True)
 
-with st.expander("How We Calculate Our Data (Methodology)"):
-    st.markdown(r"""
-    **Data Ingestion & Aggregation**
-    The system interfaces with the Federal Reserve Economic Data (FRED) API to retrieve real-time macroeconomic indicators. Specifically, it tracks the continuous contract for Brent Crude Oil (`DCOILBRENTEU`) and the United States Dollar to Philippine Peso exchange rate (`DEXPHUS`).
+with st.expander("How We Calculate Our Data"):
+    st.markdown("""
+    **How We Get Our Data** The system automatically gets the latest world oil prices and US Dollar to Philippine Peso exchange rates from the Federal Reserve Economic Data (FRED) database.
     
-    **Price Determination Algorithm**
-    Base pump prices are computed utilizing a multiple linear regression model optimized via Ordinary Least Squares (OLS). The algorithm resolves the normal equation $\beta = (X^T X)^{-1} X^T y$ against historical pricing matrices to isolate the precise scalar weights of global crude variations and forex fluctuations on local retail prices. The resulting coefficient vector is multiplied by real-time market inputs to produce the estimated current price per liter.
+    **How We Calculate Current Prices** We use a mathematical formula that looks at past fuel prices and compares them to current global oil prices and exchange rates. This helps us estimate what the pump prices should be right now.
     
-    **NLP Sentiment-Driven Forecasting Architecture**
-    Future trend projection operates on a Stochastic Random Walk model. The simulation maps future price trajectories by applying daily percentage shocks drawn from a normal distribution $\mathcal{N}(\mu, \sigma=0.012)$. The drift parameter ($\mu$) is actively adjusted using **Natural Language Processing (NLP)** lexical analysis of real-time breaking news fetched from NewsAPI, ensuring that global macroeconomic sentiment (e.g., OPEC announcements, geopolitical conflict) directly influences the price prediction vector.
+    **How We Predict Future Prices** To guess future prices, we use a statistical math model that simulates possible daily price changes. We also scan the latest global news. If the news talks about things like oil shortages or conflicts, the system adjusts the prediction to show prices going up. If the news is about an abundance of oil, it predicts prices going down. The further into the future we predict, the less certain the guess becomes.
     """)
 
 with st.expander("Definition of Fuel Types"):
     st.markdown("""
-    * **91 RON (Regular):** Standard unleaded gasoline formulation. Equivalent to market brands such as Petron Xtra Advance, Shell FuelSave, and Caltex Silver.
-    * **95 RON (Premium):** Higher octane formulation offering increased knock resistance. Equivalent to Petron XCS, Shell V-Power, and Caltex Platinum.
-    * **97+ RON (Ultra):** Maximum performance gasoline for high-compression engines. Equivalent to Petron Blaze 100 and Seaoil Extreme 97.
-    * **Diesel:** Standard automotive gas oil. Equivalent to Petron Turbo Diesel, Shell V-Power Diesel, and Caltex Power Diesel.
+    * **91 RON (Regular):** Standard unleaded gasoline. Equivalent to market brands such as Petron Xtra Advance, Shell FuelSave, and Caltex Silver.
+    * **95 RON (Premium):** Higher octane gasoline for better engine performance. Equivalent to Petron XCS, Shell V-Power, and Caltex Platinum.
+    * **97+ RON (Ultra):** Maximum performance gasoline for high-end engines. Equivalent to Petron Blaze 100 and Seaoil Extreme 97.
+    * **Diesel:** Standard diesel for regular use. Equivalent to Petron Turbo Diesel, Shell V-Power Diesel, and Caltex Power Diesel.
     """)
 
 st.markdown(f"""
