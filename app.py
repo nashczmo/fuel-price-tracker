@@ -526,8 +526,17 @@ with col2:
     st.markdown('<div class="stat-label">Estimated Accuracy</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="stat-value">{model_confidence}%</div>', unsafe_allow_html=True)
     
-    display_df = generated_forecast_dataframe.copy()
-    display_df.columns = ["Date", "91 RON", "95 RON", "97+ RON", "Diesel"]
+    # Map long names to short names to dynamically clean the table headers based on user selection
+    short_col_names = {
+        "91 RON (Xtra Advance / FuelSave / Silver)": "91 RON",
+        "95 RON (XCS / V-Power / Platinum)": "95 RON",
+        "97+ RON (Blaze 100 / Racing)": "97+ RON",
+        "Diesel (Turbo / Max / Power)": "Diesel"
+    }
+    
+    # Filter the dataframe to only include the specific fuels selected by the user
+    display_df = generated_forecast_dataframe[["Date"] + selected_fuels].copy()
+    display_df.columns = ["Date"] + [short_col_names[col] for col in selected_fuels]
     
     st.dataframe(
         display_df,
