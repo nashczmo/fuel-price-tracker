@@ -533,7 +533,7 @@ with col2:
         display_df,
         hide_index=True,
         use_container_width=True,
-        height=600
+        height=400
     )
 
 st.markdown("""
