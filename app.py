@@ -35,7 +35,7 @@ def inject_custom_css():
             padding-bottom: 2rem !important;
             padding-left: 4% !important;
             padding-right: 4% !important;
-            max-width: 1550px !important;
+            max-width: 1650px !important;
         }
 
         .main-title {
@@ -199,36 +199,6 @@ def inject_custom_css():
             font-weight: 500 !important;
         }
 
-        /* Static HTML Table Override */
-        .static-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            color: #e2e8f0;
-            background-color: transparent;
-        }
-        .static-table th {
-            color: #94a3b8;
-            font-weight: 600;
-            text-align: right;
-            padding: 12px 8px;
-            border-bottom: 1px solid #374151;
-            white-space: nowrap;
-        }
-        .static-table td {
-            text-align: right;
-            padding: 12px 8px;
-            border-bottom: 1px solid #1f2937;
-            white-space: nowrap;
-        }
-        .static-table th:first-child, .static-table td:first-child {
-            text-align: left;
-            padding-left: 0;
-        }
-        .static-table th:last-child, .static-table td:last-child {
-            padding-right: 0;
-        }
-
         .news-header {
             font-size: 1.5rem;
             font-weight: 700;
@@ -355,10 +325,6 @@ def inject_custom_css():
             .info-tooltip .tooltip-text {
                 width: 240px;
                 margin-left: -120px;
-            }
-            .static-table {
-                display: block;
-                overflow-x: auto;
             }
         }
         </style>
@@ -562,8 +528,13 @@ with col2:
     
     display_df = generated_forecast_dataframe.copy()
     display_df.columns = ["Date", "91 RON", "95 RON", "97+ RON", "Diesel"]
-    html_table = display_df.to_html(index=False, classes="static-table")
-    st.markdown(html_table, unsafe_allow_html=True)
+    
+    st.dataframe(
+        display_df,
+        hide_index=True,
+        use_container_width=True,
+        height=600
+    )
 
 st.markdown("""
     <div class="news-header">
