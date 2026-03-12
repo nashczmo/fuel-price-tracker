@@ -17,9 +17,13 @@ def inject_custom_css():
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
+        /* Enforce Inter Font Globally */
+        html, body, [class*="css"], .stApp, .stApp div, .stApp span, .stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, .stApp label {
+            font-family: 'Inter', sans-serif !important;
+        }
+
         .stApp {
             background-color: #0f111a;
-            font-family: 'Inter', sans-serif;
             color: #c9d1d9;
         }
         
@@ -159,7 +163,6 @@ def inject_custom_css():
             font-weight: 800;
             line-height: 1;
             margin: 0;
-            font-family: 'Inter', sans-serif;
         }
 
         .metric-sub {
@@ -283,7 +286,6 @@ def inject_custom_css():
         </style>
     """, unsafe_allow_html=True)
 
-# Pre-computed inverse matrix components to eliminate redundant np.linalg.inv calls
 HISTORICAL_FEATURES = np.array([[1, 74.2, 55.8], [1, 78.5, 56.1], [1, 80.2, 56.5], [1, 82.5, 57.0]])
 INV_MATRIX = np.linalg.inv(HISTORICAL_FEATURES.T.dot(HISTORICAL_FEATURES)).dot(HISTORICAL_FEATURES.T)
 
@@ -314,7 +316,6 @@ def fetch_comprehensive_market_data():
         fred_api_key = st.secrets.get("FRED_API_KEY", None)
         if not fred_api_key: return st.session_state.last_market_data
 
-        # Reduced timeout to 3 seconds to prevent long blocks if API is unresponsive
         req_params = {"api_key": fred_api_key, "file_type": "json", "sort_order": "desc", "limit": 1}
         
         response_brent = requests.get(
@@ -386,9 +387,9 @@ def build_interactive_chart(forecast_df, selected_fuels):
     )
 
     line_chart = alt.Chart(melted_dataframe).mark_line(point=True, strokeWidth=2).encode(
-        x=alt.X('Date:N', sort=None, title='Date', axis=alt.Axis(grid=False, labelColor='#94a3b8', titleColor='#94a3b8')),
-        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (P/L)', axis=alt.Axis(grid=True, gridColor='#1f2937', labelColor='#94a3b8', titleColor='#94a3b8')),
-        color=alt.Color('Fuel Type:N', scale=color_scale, legend=alt.Legend(orient='bottom', title=None, labelColor='#94a3b8')),
+        x=alt.X('Date:N', sort=None, title='Date', axis=alt.Axis(grid=False, labelColor='#94a3b8', titleColor='#94a3b8', labelFont='Inter', titleFont='Inter')),
+        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (P/L)', axis=alt.Axis(grid=True, gridColor='#1f2937', labelColor='#94a3b8', titleColor='#94a3b8', labelFont='Inter', titleFont='Inter')),
+        color=alt.Color('Fuel Type:N', scale=color_scale, legend=alt.Legend(orient='bottom', title=None, labelColor='#94a3b8', labelFont='Inter')),
         tooltip=['Date', 'Fuel Type', 'Price']
     ).properties(height=400).configure_view(strokeWidth=0).configure_axis(domain=False)
     st.altair_chart(line_chart, use_container_width=True)
