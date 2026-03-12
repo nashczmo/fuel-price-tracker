@@ -73,6 +73,7 @@ def inject_custom_css():
             align-items: center;
             margin-left: 8px;
             cursor: pointer;
+            vertical-align: middle;
         }
         .info-tooltip svg {
             fill: #94a3b8;
@@ -184,6 +185,8 @@ def inject_custom_css():
             color: #e2e8f0;
             font-size: 0.85rem;
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
         }
         
         .stat-value {
@@ -330,7 +333,6 @@ def inject_custom_css():
         </style>
     """, unsafe_allow_html=True)
 
-# Pre-computed matrices for optimization
 HISTORICAL_FEATURES = np.array([[1, 74.2, 55.8], [1, 78.5, 56.1], [1, 80.2, 56.5], [1, 82.5, 57.0]])
 INV_MATRIX = np.linalg.inv(HISTORICAL_FEATURES.T.dot(HISTORICAL_FEATURES)).dot(HISTORICAL_FEATURES.T)
 
@@ -391,31 +393,39 @@ def fetch_live_news():
             "title": "House OKs bill allowing Marcos to tweak excise tax on fuel on 2nd reading",
             "description": "THE HOUSE of Representatives on Wednesday passed on second reading a bill authorizing President Ferdinand R. Marcos, Jr. to suspend or cut excise taxes on fuel...",
             "url": "#",
-            "source": {"name": "BWorldOnline"}
+            "source": "BWorldOnline"
         },
         {
             "title": "House panel approves measure on fuel excise taxes suspension",
             "description": "The House of Representatives approved on second reading Wednesday a measure that would authorize President Ferdinand Marcos Jr. to temporarily suspend or reduce...",
             "url": "#",
-            "source": {"name": "Tribune"}
+            "source": "Tribune"
         }
     ]
     try:
-        news_api_key = st.secrets.get("NEWS_API_KEY", None)
-        if not news_api_key: return fallback_news
+        newsdata_api_key = st.secrets.get("NEWSDATA_API_KEY", None)
+        if not newsdata_api_key: return fallback_news
         
-        url = f"https://newsapi.org/v2/everything?q=oil+prices+OR+fuel+philippines+OR+OPEC&language=en&sortBy=publishedAt&pageSize=2&apiKey={news_api_key}"
-        response = requests.get(url, timeout=4)
+        url = f"https://newsdata.io/api/1/news?apikey={newsdata_api_key}&q=oil%20prices%20OR%20fuel%20philippines%20OR%20OPEC&language=en"
+        response = requests.get(url, timeout=5)
+        
         if response.status_code == 200:
-            articles = response.json().get('articles', [])
+            articles = response.json().get('results', [])
             if len(articles) >= 2:
-                return articles[:2]
+                mapped_articles = []
+                for art in articles[:2]:
+                    mapped_articles.append({
+                        "title": art.get("title", "Market Update"),
+                        "description": str(art.get("description", ""))[:140] + "...",
+                        "url": art.get("link", "#"),
+                        "source": art.get("source_id", "News Source")
+                    })
+                return mapped_articles
         return fallback_news
     except Exception:
         return fallback_news
 
 def analyze_news_sentiment(articles):
-    # Scan the news words to influence our predictions up or down
     bullish_words = ['increase', 'surge', 'hike', 'rally', 'jump', 'conflict', 'war', 'shortage', 'cut', 'opec', 'soar']
     bearish_words = ['drop', 'fall', 'decrease', 'rollback', 'slump', 'ease', 'surplus', 'plunge', 'cheaper', 'suspend']
     
@@ -427,7 +437,6 @@ def analyze_news_sentiment(articles):
         for word in bearish_words:
             if word in text: score -= 0.003
             
-    # Cap how much the news affects the graph so it doesn't get too crazy
     return max(min(score, 0.015), -0.015)
 
 @st.cache_data(ttl=300, show_spinner=False)
@@ -444,8 +453,6 @@ def generate_forecast_dataframe(base_prices, forecast_horizon_days, sentiment_bi
     }
     
     stochastic_data = {"Date": generation_dates}
-    
-    # Add our news sentiment score to the math model
     adjusted_drift = 0.002 + sentiment_bias
     
     for fuel_grade, current_price in base_prices.items():
@@ -483,7 +490,6 @@ def build_interactive_chart(forecast_df, selected_fuels):
     ).properties(height=400).configure_view(strokeWidth=0).configure_axis(domain=False)
     st.altair_chart(line_chart, use_container_width=True)
 
-# Application Initialization
 inject_custom_css()
 initialize_session_state()
 
@@ -496,15 +502,13 @@ structured_pump_prices = {
     "97": live_market_data["p97"], "dsl": live_market_data["dsl"]
 }
 
-# UI Rendering
 st.markdown('<div class="main-title">Philippine Fuel Price Tracker</div>', unsafe_allow_html=True)
 
-# Generate custom alert message in simpler terms
-alert_msg = "MARKET ALERT: Recent news suggests fuel prices might change soon."
+alert_msg = "MARKET ALERT: Recent global news suggests minor or standard market fluctuations."
 if sentiment_bias > 0.005:
-    alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO UP soon."
+    alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO UP soon due to global supply concerns."
 elif sentiment_bias < -0.005:
-    alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO DOWN soon."
+    alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO DOWN soon due to increased global supply."
 
 st.markdown(f"""
     <div class="alert-box">
@@ -579,7 +583,19 @@ with col1:
 
 with col2:
     st.markdown('<div class="sub-header">Prediction System</div>', unsafe_allow_html=True)
-    st.markdown('<div class="stat-label">Accuracy Estimate</div>', unsafe_allow_html=True)
+    
+    st.markdown(f"""
+        <div class="stat-label">
+            Accuracy Estimate
+            <div class="info-tooltip">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24">
+                    <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                </svg>
+                <span class="tooltip-text"><strong>Confidence Decay:</strong> Accuracy drops as predictions look further ahead. Day 1 is ~99% accurate, but a 30-day forecast drops to ~74%, reflecting the unpredictable nature of future markets.</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
     st.markdown(f'<div class="stat-value">{model_confidence}%</div>', unsafe_allow_html=True)
     
     short_col_names = {
@@ -608,27 +624,26 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Generate HTML for the fetched live news WITHOUT indentation to prevent markdown bugs
 news_html = '<div class="news-grid">'
 for article in live_news:
     title = article.get('title', 'Market Update')
     desc = article.get('description', '')
-    if desc: 
-        desc = desc[:140] + '...'
     url = article.get('url', '#')
-    source = article.get('source', {}).get('name', 'NEWS SOURCE')
+    source = article.get('source', 'NEWS SOURCE')
     
-    news_html += f'<div class="news-card"><div><div class="news-title">{title}</div><div class="news-body">{desc}</div></div><a href="{url}" target="_blank" class="news-link">READ MORE ({source.upper()})</a></div>'
+    news_html += f'<div class="news-card"><div><div class="news-title">{title}</div><div class="news-body">{desc}</div></div><a href="{url}" target="_blank" class="news-link">READ MORE ({str(source).upper()})</a></div>'
 news_html += '</div>'
 st.markdown(news_html, unsafe_allow_html=True)
 
 with st.expander("How We Calculate Our Data"):
     st.markdown("""
-    **How We Get Our Data** The system automatically gets the latest world oil prices and US Dollar to Philippine Peso exchange rates from the Federal Reserve Economic Data (FRED) database.
-    
-    **How We Calculate Current Prices** We use a mathematical formula that looks at past fuel prices and compares them to current global oil prices and exchange rates. This helps us estimate what the pump prices should be right now.
-    
-    **How We Predict Future Prices** To guess future prices, we use a statistical math model that simulates possible daily price changes. We also scan the latest global news. If the news talks about things like oil shortages or conflicts, the system adjusts the prediction to show prices going up. If the news is about an abundance of oil, it predicts prices going down. The further into the future we predict, the less certain the guess becomes.
+    **1. Getting Real-Time Data** Our system automatically connects to the Federal Reserve Economic Data (FRED) database every 5 minutes. It pulls the latest, up-to-the-minute numbers for global crude oil prices (Brent Crude) and the US Dollar to Philippine Peso exchange rate.
+
+    **2. Calculating Current Pump Prices** We use a statistical math model called "Linear Regression." Think of it like a recipe formula: we studied exactly how past changes in global oil prices and currency exchange rates affected local gas stations. By plugging today's live numbers into our formula, we get a highly accurate estimate of what the pump prices should be right now in the Philippines.
+
+    **3. Reading the News (AI Sentiment Analysis)** The tracker acts like a speed-reader. Using an API from NewsData.io, it reads the latest breaking global news about oil and fuel. It scans the text for specific market-moving keywords. Words like "war," "shortage," or "OPEC cuts" tell the system prices will likely go up. Words like "surplus," "drop," or "rollback" tell the system prices will go down.
+
+    **4. Predicting the Future** To draw the forecast graph, we run a simulation called a "Stochastic Random Walk." This mathematical simulation maps out future prices day by day by adding random, natural market bumps (volatility). We then adjust the overall direction of the graph (up or down) based on the AI news reading from Step 3. The further into the future we predict, the wider the possibilities become, which is why our "Estimated Accuracy" percentage drops the further out you look.
     """)
 
 with st.expander("Definition of Fuel Types"):
