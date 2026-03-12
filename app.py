@@ -390,14 +390,14 @@ def fetch_comprehensive_market_data():
 def fetch_live_news():
     fallback_news = [
         {
-            "title": "House OKs bill allowing Marcos to tweak excise tax on fuel on 2nd reading",
-            "description": "THE HOUSE of Representatives on Wednesday passed on second reading a bill authorizing President Ferdinand R. Marcos, Jr. to suspend or cut excise taxes on fuel...",
+            "title": "Legislature Approves Bill to Modify Fuel Excise Tax",
+            "description": "The national legislative body has approved a secondary measure granting executive authority to suspend or reduce standard excise taxes on petroleum products...",
             "url": "#",
             "source": "BWorldOnline"
         },
         {
-            "title": "House panel approves measure on fuel excise taxes suspension",
-            "description": "The House of Representatives approved on second reading Wednesday a measure that would authorize President Ferdinand Marcos Jr. to temporarily suspend or reduce...",
+            "title": "Government Panel Recommends Suspension of Fuel Taxation",
+            "description": "A government panel has authorized a structural measure allowing temporary suspension of national fuel taxes in response to macroeconomic price volatility...",
             "url": "#",
             "source": "Tribune"
         }
@@ -466,7 +466,7 @@ def generate_forecast_dataframe(base_prices, forecast_horizon_days, sentiment_bi
 
 def build_interactive_chart(forecast_df, selected_fuels):
     if not selected_fuels:
-        st.warning("Select at least one fuel type.")
+        st.warning("Please select at least one fuel classification.")
         return
 
     plot_df = forecast_df[["Date"] + selected_fuels]
@@ -532,11 +532,11 @@ pred_dsl = generated_forecast_dataframe["Diesel (Turbo / Max / Power)"].iloc[0]
 with top_section:
     st.markdown('<div class="main-title">Philippine Fuel Price Tracker</div>', unsafe_allow_html=True)
 
-    alert_msg = "MARKET ALERT: Recent global news suggests minor or standard market fluctuations."
+    alert_msg = "MARKET ALERT: Current geopolitical indicators present standard market conditions with minimal variance."
     if sentiment_bias > 0.005:
-        alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO UP soon due to global supply concerns."
+        alert_msg = "MARKET ALERT: Current macroeconomic trends indicate an upward trajectory in commodity pricing."
     elif sentiment_bias < -0.005:
-        alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO DOWN soon due to increased global supply."
+        alert_msg = "MARKET ALERT: Current macroeconomic trends indicate a downward trajectory in commodity pricing."
 
     st.markdown(f"""
         <div class="alert-box">
@@ -554,7 +554,7 @@ with top_section:
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24">
                     <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
                 </svg>
-                <span class="tooltip-text"><strong>Live Updates:</strong> Prices automatically update every 5 minutes by checking global oil trends and scanning breaking news.</span>
+                <span class="tooltip-text"><strong>Data Synchronization:</strong> Values are recalibrated every five minutes by integrating international macroeconomic indices and real-time semantic analysis.</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -600,7 +600,7 @@ with col2:
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24">
                     <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
                 </svg>
-                <span class="tooltip-text"><strong>Confidence Decay:</strong> Accuracy drops as predictions look further ahead. Day 1 is ~99% accurate, but a 30-day forecast drops to ~74%, reflecting the unpredictable nature of future markets.</span>
+                <span class="tooltip-text"><strong>Confidence Interval Decay:</strong> Predictive accuracy systematically declines as the forecast horizon extends. A one-day projection maintains approximately 99% accuracy, whereas a thirty-day projection decreases to approximately 74% due to inherent market volatility.</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -646,21 +646,21 @@ st.markdown(news_html, unsafe_allow_html=True)
 
 with st.expander("How We Calculate Our Data"):
     st.markdown("""
-    **1. Getting Real-Time Data** Our system automatically connects to the Federal Reserve Economic Data (FRED) database every 5 minutes. It pulls the latest, up-to-the-minute numbers for global crude oil prices (Brent Crude) and the US Dollar to Philippine Peso exchange rate.
+    **Phase 1: Real-Time Data Acquisition.** The system systematically retrieves data from the Federal Reserve Economic Data (FRED) database at five-minute intervals. It extracts the most recent global crude oil prices (Brent Crude) and the prevailing exchange rate between the United States Dollar and the Philippine Peso.
 
-    **2. Calculating Current Pump Prices** We use a statistical math model called "Linear Regression." Think of it like a recipe formula: we studied exactly how past changes in global oil prices and currency exchange rates affected local gas stations. By plugging today's live numbers into our formula, we get a highly accurate estimate of what the pump prices should be right now in the Philippines.
+    **Phase 2: Current Price Estimation.** The system applies a statistical method known as Multiple Linear Regression. This model utilizes historical data to determine how past fluctuations in global oil prices and currency exchange rates have influenced local retail fuel prices. By applying this established formula to current market data, the system generates a highly accurate estimate of present pump prices in the Philippines.
 
-    **3. Reading the News (AI Sentiment Analysis)** The tracker acts like a speed-reader. Using an API from NewsData.io, it reads the latest breaking global news about oil and fuel. It scans the text for specific market-moving keywords. Words like "war," "shortage," or "OPEC cuts" tell the system prices will likely go up. Words like "surplus," "drop," or "rollback" tell the system prices will go down.
+    **Phase 3: Natural Language Processing (NLP) and Sentiment Analysis.** The application integrates the NewsData.io API to monitor breaking global news regarding oil and fuel markets. It employs lexical sentiment analysis to identify specific market indicators. For example, terms related to "shortages" or "conflict" generate a positive (bullish) sentiment score, suggesting potential price increases. Conversely, terms indicating "surplus" or "price reductions" generate a negative (bearish) sentiment score, implying potential price decreases.
 
-    **4. Predicting the Future** To draw the forecast graph, we run a simulation called a "Stochastic Random Walk." This mathematical simulation maps out future prices day by day by adding random, natural market bumps (volatility). We then adjust the overall direction of the graph (up or down) based on the AI news reading from Step 3. The further into the future we predict, the wider the possibilities become, which is why our "Estimated Accuracy" percentage drops the further out you look.
+    **Phase 4: Predictive Forecasting.** To project future price trends, the system utilizes a Stochastic Random Walk simulation. This mathematical model forecasts daily price trajectories by incorporating standard market volatility. Furthermore, the directional bias of the simulation is actively adjusted based on the aggregated NLP sentiment score derived from recent news. Forecast accuracy inherently decreases over extended periods due to the unpredictable nature of future market conditions.
     """)
 
 with st.expander("Definition of Fuel Types"):
     st.markdown("""
-    * **91 RON (Regular):** Standard unleaded gasoline. Equivalent to market brands such as Petron Xtra Advance, Shell FuelSave, and Caltex Silver.
-    * **95 RON (Premium):** Higher octane gasoline for better engine performance. Equivalent to Petron XCS, Shell V-Power, and Caltex Platinum.
-    * **97+ RON (Ultra):** Maximum performance gasoline for high-end engines. Equivalent to Petron Blaze 100 and Seaoil Extreme 97.
-    * **Diesel:** Standard diesel for regular use. Equivalent to Petron Turbo Diesel, Shell V-Power Diesel, and Caltex Power Diesel.
+    * **91 RON (Regular):** This refers to the standard unleaded gasoline formulation. It is equivalent to commercial market brands such as Petron Xtra Advance, Shell FuelSave, and Caltex Silver.
+    * **95 RON (Premium):** This denotes a gasoline formulation with a higher octane rating, which provides improved engine efficiency and knock resistance. It is equivalent to brands like Petron XCS, Shell V-Power, and Caltex Platinum.
+    * **97+ RON (Ultra):** This classification represents maximum-performance gasoline designed for high-compression engines. It corresponds to premium brands such as Petron Blaze 100 and Seaoil Extreme 97.
+    * **Diesel:** This indicates standard automotive gas oil intended for conventional diesel engines. It is equivalent to Petron Turbo Diesel, Shell V-Power Diesel, and Caltex Power Diesel.
     """)
 
 st.markdown(f"""
