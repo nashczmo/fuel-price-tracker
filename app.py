@@ -8,14 +8,14 @@ import math
 import logging
 
 st.set_page_config(
-    page_title="Fuel Price Tracker",
-    page_icon="⛟",
+    page_title="Fuel Price Intelligence",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-def apply_minimalist_css():
+def apply_professional_css():
     st.markdown("""
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -27,19 +27,109 @@ def apply_minimalist_css():
         
         header {visibility: hidden;}
         footer {visibility: hidden;}
+        #MainMenu {visibility: hidden;}
+        
         .block-container {
-            padding-top: 2rem;
-            max-width: 1200px;
+            padding-top: 1rem;
+            max-width: 1300px;
         }
 
+        /* Animations */
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulseIndicator {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        .animate-in {
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+        .delay-1 { animation-delay: 0.05s; }
+        .delay-2 { animation-delay: 0.15s; }
+        .delay-3 { animation-delay: 0.25s; }
+        .delay-4 { animation-delay: 0.35s; }
+        .delay-5 { animation-delay: 0.45s; }
+
+        /* Dashboard Header */
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .dash-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .timestamp-display {
+            font-family: 'Inter', monospace;
+            font-size: 0.85rem;
+            color: #8b949e;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            padding: 6px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .pulse-dot {
+            height: 8px; width: 8px;
+            background-color: #3fb950;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: pulseIndicator 2s infinite;
+        }
+
+        /* Alerts */
+        .alert-banner {
+            display: flex;
+            align-items: center;
+            border-left: 3px solid #d29922;
+            background-color: rgba(210, 153, 34, 0.08);
+            padding: 16px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #e3b341;
+            margin-bottom: 32px;
+        }
+        .alert-banner i { margin-right: 12px; font-size: 1.2rem; }
+
+        /* Metric Cards */
         .metric-container {
             display: flex;
             flex-direction: column;
             background-color: #161b22;
             border: 1px solid #30363d;
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 24px;
             margin-bottom: 24px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .metric-container:hover {
+            transform: translateY(-2px);
+            border-color: #58a6ff;
+        }
+
+        .metric-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
         }
 
         .metric-label {
@@ -47,90 +137,89 @@ def apply_minimalist_css():
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: #8b949e;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-weight: 700;
         }
+        
+        .metric-icon { font-size: 1.1rem; opacity: 0.8; }
 
         .metric-value {
-            font-size: 2.25rem;
-            font-weight: 700;
+            font-size: 2.4rem;
+            font-weight: 800;
             color: #ffffff;
             line-height: 1;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
-        .metric-subtext {
-            font-size: 0.7rem;
-            color: #6e7681;
-        }
+        .metric-subtext { font-size: 0.75rem; color: #6e7681; }
 
-        .alert-banner {
-            border-left: 3px solid #d29922;
-            background-color: rgba(210, 153, 34, 0.1);
-            padding: 12px 16px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            color: #c9d1d9;
-            margin-bottom: 32px;
-        }
-
+        /* Section Headers */
         .section-header {
-            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            font-size: 1.15rem;
             font-weight: 600;
             color: #ffffff;
             border-bottom: 1px solid #30363d;
-            padding-bottom: 8px;
-            margin-top: 32px;
+            padding-bottom: 12px;
+            margin-top: 24px;
             margin-bottom: 24px;
+            gap: 12px;
         }
+        .section-header i { color: #58a6ff; }
 
+        /* Data Cards */
         .data-card {
             background-color: #161b22;
             border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 20px;
+            border-radius: 8px;
+            padding: 24px;
             height: 100%;
         }
 
         .data-card h4 {
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #ffffff;
             margin-top: 0;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+        
+        .data-card h4 i { color: #8b949e; font-size: 0.9rem; }
 
         .data-card p {
             font-size: 0.85rem;
             color: #8b949e;
-            line-height: 1.5;
-            margin-bottom: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
         }
 
-        .data-card a {
+        .source-link {
             font-size: 0.75rem;
             text-transform: uppercase;
             color: #58a6ff;
             text-decoration: none;
             font-weight: 600;
-        }
-
-        .timestamp-display {
-            font-family: monospace;
-            font-size: 0.8rem;
-            color: #8b949e;
-            margin-bottom: 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         div[data-testid="stExpander"] {
-            background-color: transparent;
+            background-color: #161b22;
             border: 1px solid #30363d;
-            border-radius: 6px;
+            border-radius: 8px;
         }
         
-        div[data-testid="stExpander"] summary p {
-            font-weight: 500;
+        div[data-testid="stExpander"] summary p { font-weight: 600; color: #c9d1d9; }
+        
+        div[data-baseweb="select"] > div {
+            background-color: #0d1117;
+            border-color: #30363d;
             color: #c9d1d9;
+            border-radius: 6px;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -260,7 +349,7 @@ def generate_stochastic_forecast(prices: dict, horizon: int) -> tuple:
     return pd.DataFrame(matrix), confidence
 
 def render_ui():
-    apply_minimalist_css()
+    apply_professional_css()
     initialize_cache()
     
     market_data = retrieve_market_telemetry()
@@ -273,32 +362,46 @@ def render_ui():
         "Diesel": market_data["dsl"]
     }
 
-    st.markdown("## Fuel Price Intelligence")
-    st.markdown(f'<div class="timestamp-display">DATA SYNC: {market_data["timestamp"]}</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+        <div class="dash-header animate-in delay-1">
+            <div class="dash-title">
+                <i class="fa-solid fa-gas-pump" style="color: #58a6ff;"></i>
+                Fuel Intelligence
+            </div>
+            <div class="timestamp-display">
+                <span class="pulse-dot"></span>
+                SYNC: {market_data["timestamp"]}
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("""
-        <div class="alert-banner">
-            <strong>SYSTEM ADVISORY:</strong> Geopolitical shifts may introduce high volatility to short-term pricing models.
+        <div class="alert-banner animate-in delay-1">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div><strong>SYSTEM ADVISORY:</strong> Geopolitical shifts may introduce high volatility to short-term pricing models.</div>
         </div>
     """, unsafe_allow_html=True)
 
     c1, c2, c3, c4 = st.columns(4)
     
-    def render_metric(col, label, value, subtext):
+    def render_metric(col, label, value, subtext, icon, color, delay_class):
         col.markdown(f"""
-            <div class="metric-container">
-                <div class="metric-label">{label}</div>
+            <div class="metric-container animate-in {delay_class}">
+                <div class="metric-top">
+                    <span class="metric-label">{label}</span>
+                    <i class="fa-solid {icon} metric-icon" style="color: {color};"></i>
+                </div>
                 <div class="metric-value">₱{value:.2f}</div>
                 <div class="metric-subtext">{subtext}</div>
             </div>
         """, unsafe_allow_html=True)
 
-    render_metric(c1, "91 RON", market_data['p91'], "Standard / Regular")
-    render_metric(c2, "95 RON", market_data['p95'], "Premium / Mid-Grade")
-    render_metric(c3, "97+ RON", market_data['p97'], "Ultra / High-Performance")
-    render_metric(c4, "Diesel", market_data['dsl'], "Commercial / Heavy Duty")
+    render_metric(c1, "91 RON", market_data['p91'], "Standard / Regular", "fa-car-side", "#3fb950", "delay-1")
+    render_metric(c2, "95 RON", market_data['p95'], "Premium / Mid-Grade", "fa-gauge-high", "#58a6ff", "delay-2")
+    render_metric(c3, "97+ RON", market_data['p97'], "Ultra / Performance", "fa-bolt", "#bc8cff", "delay-3")
+    render_metric(c4, "Diesel", market_data['dsl'], "Heavy Duty / Commercial", "fa-truck-fast", "#f85149", "delay-4")
 
-    st.markdown('<div class="section-header">Predictive Analytics</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header animate-in delay-2"><i class="fa-solid fa-chart-line"></i> Predictive Analytics</div>', unsafe_allow_html=True)
 
     ctrl_c1, ctrl_c2 = st.columns([1, 2])
     horizon = ctrl_c1.selectbox("Forecast Horizon", [7, 14, 30], format_func=lambda x: f"{x} Days")
@@ -321,46 +424,46 @@ def render_ui():
             y=alt.Y('Price:Q', scale=alt.Scale(zero=False), axis=alt.Axis(grid=True, gridColor='#30363d', labelColor='#8b949e', title='Estimated (₱)')),
             color=alt.Color('Type:N', scale=alt.Scale(range=['#3fb950', '#58a6ff', '#bc8cff', '#f85149']), legend=alt.Legend(orient="bottom", title=None, labelColor='#c9d1d9')),
             tooltip=['Date', 'Type', 'Price']
-        ).properties(height=350).configure_view(strokeWidth=0).configure_axis(domain=False)
+        ).properties(height=380).configure_view(strokeWidth=0).configure_axis(domain=False)
         
         st.altair_chart(chart, use_container_width=True)
 
     with data_col:
         st.markdown(f"""
-            <div class="data-card" style="margin-bottom: 16px;">
-                <div style="font-size: 0.75rem; color: #8b949e; text-transform: uppercase; margin-bottom: 4px;">Confidence Interval</div>
-                <div style="font-size: 2rem; font-weight: 700; color: #3fb950; margin-bottom: 8px;">{confidence}%</div>
-                <div style="font-size: 0.75rem; color: #6e7681; line-height: 1.4;">Based on historical variance and selected horizon length.</div>
+            <div class="data-card animate-in delay-3" style="margin-bottom: 16px;">
+                <div style="font-size: 0.75rem; color: #8b949e; text-transform: uppercase; margin-bottom: 8px; font-weight: 700;">Model Confidence</div>
+                <div style="font-size: 2.2rem; font-weight: 800; color: #3fb950; margin-bottom: 12px; line-height: 1;">{confidence}%</div>
+                <div style="font-size: 0.8rem; color: #8b949e; line-height: 1.5;"><i class="fa-solid fa-microchip" style="margin-right: 6px;"></i>Stochastic Random Walk Simulation</div>
             </div>
         """, unsafe_allow_html=True)
-        st.dataframe(df_forecast[['Date'] + selected_fuels], hide_index=True, use_container_width=True, height=200)
+        st.dataframe(df_forecast[['Date'] + selected_fuels], hide_index=True, use_container_width=True, height=210)
 
-    st.markdown('<div class="section-header">Market Context</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header animate-in delay-4"><i class="fa-solid fa-newspaper"></i> Market Context</div>', unsafe_allow_html=True)
     
     n1, n2 = st.columns(2)
     
     n1.markdown(f"""
-        <div class="data-card">
-            <h4>{news_data[0]['title']}</h4>
+        <div class="data-card animate-in delay-4">
+            <h4><i class="fa-regular fa-compass"></i> {news_data[0]['title']}</h4>
             <p>{news_data[0]['description']}</p>
-            <a href="{news_data[0]['link']}" target="_blank">View Source [{news_data[0]['source']}]</a>
+            <a href="{news_data[0]['link']}" target="_blank" class="source-link">Read Full Report <i class="fa-solid fa-arrow-right-long"></i></a>
         </div>
     """, unsafe_allow_html=True)
     
     n2.markdown(f"""
-        <div class="data-card">
-            <h4>{news_data[1]['title']}</h4>
+        <div class="data-card animate-in delay-5">
+            <h4><i class="fa-regular fa-compass"></i> {news_data[1]['title']}</h4>
             <p>{news_data[1]['description']}</p>
-            <a href="{news_data[1]['link']}" target="_blank">View Source [{news_data[1]['source']}]</a>
+            <a href="{news_data[1]['link']}" target="_blank" class="source-link">Read Full Report <i class="fa-solid fa-arrow-right-long"></i></a>
         </div>
     """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander("System Documentation"):
+    with st.expander("Architecture Documentation"):
         st.markdown("""
-            * **Data Aggregation:** Telemetry ingested via St. Louis Fed API (DCOILBRENTEU, DEXPHUS).
-            * **Estimation Engine:** Closed-form linear regression utilizing historical correlation matrices.
-            * **Forward Projection:** Stochastic Random Walk simulation applying gaussian noise to calculate probable divergence paths over defined horizons.
+            * **Data Aggregation:** Macro-economic telemetry ingested via Federal Reserve Economic Data (FRED).
+            * **Estimation Engine:** Closed-form deterministic linear regression modeling based on structural petroleum scaling factors.
+            * **Forward Projection:** Monte Carlo-derived Stochastic Random Walk applying normalized gaussian interference.
         """)
 
 if __name__ == "__main__":
