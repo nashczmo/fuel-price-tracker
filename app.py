@@ -61,6 +61,58 @@ def inject_custom_css():
             margin-right: 8px;
         }
 
+        /* Tooltip CSS */
+        .info-tooltip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+        .info-tooltip svg {
+            fill: #94a3b8;
+            transition: fill 0.2s;
+        }
+        .info-tooltip:hover svg {
+            fill: #e2e8f0;
+        }
+        .info-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 280px;
+            background-color: #1f2937;
+            color: #e2e8f0;
+            text-align: left;
+            border-radius: 6px;
+            padding: 12px;
+            position: absolute;
+            z-index: 50;
+            bottom: 150%;
+            left: 50%;
+            margin-left: -140px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+            font-weight: 400;
+            line-height: 1.5;
+            border: 1px solid #374151;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+        .info-tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1f2937 transparent transparent transparent;
+        }
+        .info-tooltip:hover .tooltip-text, .info-tooltip:active .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
         .alert-box {
             background-color: #241c0e;
             border-left: 4px solid #ca8a04;
@@ -145,6 +197,92 @@ def inject_custom_css():
         
         [data-testid="stDataFrame"] {
             background-color: transparent;
+        }
+
+        /* News Cards */
+        .news-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-top: 64px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .news-header svg {
+            width: 20px;
+            height: 20px;
+            fill: #94a3b8;
+        }
+        .news-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+        .news-card {
+            background-color: #111520;
+            border: 1px solid #1f2937;
+            border-top: 3px solid #3b82f6;
+            border-radius: 8px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 180px;
+        }
+        .news-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 16px;
+        }
+        .news-body {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .news-link {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #3b82f6;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        /* Expanders Override */
+        [data-testid="stExpander"] {
+            background-color: transparent;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        [data-testid="stExpander"] summary {
+            color: #f8fafc;
+            font-weight: 600;
+            padding: 16px;
+        }
+        [data-testid="stExpanderDetails"] {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            padding: 0 16px 16px 16px;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 80px;
+            padding-bottom: 32px;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .footer a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -266,6 +404,12 @@ st.markdown('<div class="main-title">Philippine Fuel Price Tracker</div>', unsaf
 st.markdown(f"""
     <div class="time-badge">
         <span class="pulse-dot"></span> As of {current_time_str}
+        <div class="info-tooltip">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24">
+                <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+            </svg>
+            <span class="tooltip-text"><strong>Data Latency Notice:</strong> Prices are synchronized with global macroeconomic indices. Displayed data may reflect a 24-48 hour delay due to API aggregation limits and disparity in international trading hours.</span>
+        </div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -337,3 +481,54 @@ with col2:
         hide_index=True,
         use_container_width=True
     )
+
+st.markdown("""
+    <div class="news-header">
+        Latest Market Intelligence
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+        </svg>
+    </div>
+    <div class="news-grid">
+        <div class="news-card">
+            <div>
+                <div class="news-title">House OKs bill allowing Marcos to tweak excise tax on fuel on 2nd reading</div>
+                <div class="news-body">THE HOUSE of Representatives on Wednesday passed on second reading a bill authorizing President Ferdinand R. Marcos, Jr. to suspend or cut excise taxes on fuel ...</div>
+            </div>
+            <a href="#" class="news-link">ACCESS SOURCE (BWORLDONLINE)</a>
+        </div>
+        <div class="news-card">
+            <div>
+                <div class="news-title">House panel approves measure on fuel excise taxes suspension</div>
+                <div class="news-body">The House of Representatives approved on second reading Wednesday a measure that would authorize President Ferdinand Marcos Jr. to temporarily suspend or reduce</div>
+            </div>
+            <a href="#" class="news-link">ACCESS SOURCE (TRIBUNE)</a>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+with st.expander("How We Calculate Our Data (Methodology)"):
+    st.markdown("""
+    **Data Ingestion & Aggregation**
+    The system interfaces with the Federal Reserve Economic Data (FRED) API to retrieve real-time macroeconomic indicators. Specifically, it tracks the continuous contract for Brent Crude Oil (`DCOILBRENTEU`) and the United States Dollar to Philippine Peso exchange rate (`DEXPHUS`).
+    
+    **Price Determination Algorithm**
+    Base pump prices are computed utilizing a multiple linear regression model optimized via Ordinary Least Squares (OLS). The algorithm resolves the normal equation $\\beta = (X^T X)^{-1} X^T y$ against historical pricing matrices to isolate the precise scalar weights of global crude variations and forex fluctuations on local retail prices. The resulting coefficient vector is multiplied by real-time market inputs to produce the estimated current price per liter.
+    
+    **Predictive Forecasting Architecture**
+    Future trend projection operates on a Stochastic Random Walk model. The simulation maps future price trajectories by applying daily percentage shocks drawn from a normal distribution $\\mathcal{N}(\\mu=0.002, \\sigma=0.012)$, which accounts for standard market volatility and inherent supply-chain latency. Model confidence accuracy decays exponentially relative to the length of the forecast horizon.
+    """)
+
+with st.expander("Definition of Fuel Types"):
+    st.markdown("""
+    * **91 RON (Regular):** Standard unleaded gasoline formulation. Equivalent to market brands such as Petron Xtra Advance, Shell FuelSave, and Caltex Silver.
+    * **95 RON (Premium):** Higher octane formulation offering increased knock resistance. Equivalent to Petron XCS, Shell V-Power, and Caltex Platinum.
+    * **97+ RON (Ultra):** Maximum performance gasoline for high-compression engines. Equivalent to Petron Blaze 100 and Seaoil Extreme 97.
+    * **Diesel:** Standard automotive gas oil. Equivalent to Petron Turbo Diesel, Shell V-Power Diesel, and Caltex Power Diesel.
+    """)
+
+st.markdown("""
+    <div class="footer">
+        Developed by <a href="#">Ignacio L.</a> and <a href="#">Andrei B.</a>
+    </div>
+""", unsafe_allow_html=True)
