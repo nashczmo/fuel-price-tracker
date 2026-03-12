@@ -125,28 +125,28 @@ def inject_custom_css():
             border-radius: 0 4px 4px 0;
             color: #e2e8f0;
             font-size: 0.85rem;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .section-title {
             font-size: 1.4rem;
             font-weight: 700;
             color: #ffffff;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .metric-card {
             background-color: #111520;
             border: 1px solid #1f2937;
             border-radius: 8px;
-            padding: 32px 24px;
+            padding: 24px;
             text-align: center;
         }
 
@@ -155,7 +155,7 @@ def inject_custom_css():
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             letter-spacing: 0.5px;
         }
 
@@ -170,14 +170,14 @@ def inject_custom_css():
         .metric-sub {
             color: #475569;
             font-size: 0.75rem;
-            margin-top: 16px;
+            margin-top: 12px;
         }
 
         .sub-header {
             font-size: 1.25rem;
             font-weight: 700;
             color: #ffffff;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         
         .stat-label {
@@ -190,7 +190,7 @@ def inject_custom_css():
             color: #e2e8f0;
             font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
 
         [data-testid="stSelectbox"] label, [data-testid="stMultiSelect"] label {
@@ -203,8 +203,8 @@ def inject_custom_css():
             font-size: 1.5rem;
             font-weight: 700;
             color: #f8fafc;
-            margin-top: 64px;
-            margin-bottom: 24px;
+            margin-top: 32px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -217,31 +217,31 @@ def inject_custom_css():
         .news-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 48px;
+            gap: 20px;
+            margin-bottom: 32px;
         }
         .news-card {
             background-color: #111520;
             border: 1px solid #1f2937;
             border-top: 3px solid #3b82f6;
             border-radius: 8px;
-            padding: 24px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 180px;
+            min-height: 160px;
         }
         .news-title {
             font-size: 1.1rem;
             font-weight: 700;
             color: #f8fafc;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         .news-body {
             font-size: 0.9rem;
             color: #94a3b8;
             line-height: 1.6;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
         .news-link {
             font-size: 0.8rem;
@@ -280,7 +280,7 @@ def inject_custom_css():
         
         .footer {
             text-align: center;
-            margin-top: 32px;
+            margin-top: 24px;
             padding-bottom: 24px;
             font-size: 0.85rem;
             color: #64748b;
@@ -435,7 +435,7 @@ def build_interactive_chart(forecast_df, selected_fuels):
         y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='Estimated Price (P/L)', axis=alt.Axis(grid=True, gridColor='#1f2937', labelColor='#94a3b8', titleColor='#94a3b8', labelFont='Inter', titleFont='Inter')),
         color=alt.Color('Fuel Type:N', scale=color_scale, legend=alt.Legend(orient='bottom', title=None, labelColor='#94a3b8', labelFont='Inter')),
         tooltip=['Date', 'Fuel Type', 'Price']
-    ).properties(height=400).configure_view(strokeWidth=0).configure_axis(domain=False)
+    ).properties(height=380).configure_view(strokeWidth=0).configure_axis(domain=False)
     st.altair_chart(line_chart, use_container_width=True)
 
 inject_custom_css()
@@ -512,7 +512,7 @@ selected_fuels = st.multiselect(
     default=all_fuel_types
 )
 
-st.markdown("<hr style='border-color: #1f2937; margin: 32px 0;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border-color: #1f2937; margin: 24px 0;'>", unsafe_allow_html=True)
 
 col1, col2 = st.columns([2.5, 1], gap="large")
 generated_forecast_dataframe, model_confidence = generate_forecast_dataframe(structured_pump_prices, days_forecast)
@@ -526,7 +526,6 @@ with col2:
     st.markdown('<div class="stat-label">Estimated Accuracy</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="stat-value">{model_confidence}%</div>', unsafe_allow_html=True)
     
-    # Map long names to short names to dynamically clean the table headers based on user selection
     short_col_names = {
         "91 RON (Xtra Advance / FuelSave / Silver)": "91 RON",
         "95 RON (XCS / V-Power / Platinum)": "95 RON",
@@ -534,7 +533,6 @@ with col2:
         "Diesel (Turbo / Max / Power)": "Diesel"
     }
     
-    # Filter the dataframe to only include the specific fuels selected by the user
     display_df = generated_forecast_dataframe[["Date"] + selected_fuels].copy()
     display_df.columns = ["Date"] + [short_col_names[col] for col in selected_fuels]
     
@@ -542,7 +540,7 @@ with col2:
         display_df,
         hide_index=True,
         use_container_width=True,
-        height=340
+        height=380
     )
 
 st.markdown("""
