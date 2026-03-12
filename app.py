@@ -198,9 +198,33 @@ def inject_custom_css():
             font-size: 0.85rem !important;
             font-weight: 500 !important;
         }
-        
-        [data-testid="stDataFrame"] {
+
+        /* Static HTML Table Override */
+        .static-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            color: #e2e8f0;
             background-color: transparent;
+        }
+        .static-table th {
+            color: #94a3b8;
+            font-weight: 600;
+            text-align: right;
+            padding: 12px 8px;
+            border-bottom: 1px solid #374151;
+        }
+        .static-table td {
+            text-align: right;
+            padding: 12px 8px;
+            border-bottom: 1px solid #1f2937;
+        }
+        .static-table th:first-child, .static-table td:first-child {
+            text-align: left;
+            padding-left: 0;
+        }
+        .static-table th:last-child, .static-table td:last-child {
+            padding-right: 0;
         }
 
         .news-header {
@@ -530,14 +554,10 @@ with col2:
     st.markdown('<div class="stat-label">Estimated Accuracy</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="stat-value">{model_confidence}%</div>', unsafe_allow_html=True)
     
-    table_height = (days_forecast + 2) * 36
-    
-    st.dataframe(
-        generated_forecast_dataframe,
-        hide_index=True,
-        use_container_width=True,
-        height=table_height
-    )
+    display_df = generated_forecast_dataframe.copy()
+    display_df.columns = ["Date", "91 RON", "95 RON", "97+ RON", "Diesel"]
+    html_table = display_df.to_html(index=False, classes="static-table")
+    st.markdown(html_table, unsafe_allow_html=True)
 
 st.markdown("""
     <div class="news-header">
