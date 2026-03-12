@@ -15,7 +15,6 @@ st.set_page_config(
 )
 
 def apply_minimalist_css():
-    """Injects core structural CSS for a high-contrast, minimalist UI."""
     st.markdown("""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -137,7 +136,6 @@ def apply_minimalist_css():
     """, unsafe_allow_html=True)
 
 def initialize_cache():
-    """Initializes persistent session state variables for fallback mechanisms."""
     if 'market_baseline' not in st.session_state:
         st.session_state.market_baseline = {
             "fx": 56.10, "p91": 72.35, "p95": 74.50, "p97": 82.30, "dsl": 75.10,
@@ -151,7 +149,6 @@ def initialize_cache():
 
 @st.cache_data(ttl=300, show_spinner=False)
 def execute_linear_regression(brent_val: float, fx_val: float) -> dict:
-    """Computes closed-form linear regression utilizing static historical tensors."""
     X_matrix = np.array([
         [1, 74.2, 55.8], 
         [1, 78.5, 56.1], 
@@ -180,7 +177,6 @@ def execute_linear_regression(brent_val: float, fx_val: float) -> dict:
 
 @st.cache_data(ttl=300, show_spinner=False)
 def retrieve_market_telemetry() -> dict:
-    """Fetches macroeconomic indicators from external APIs."""
     try:
         api_key = st.secrets.get("FRED_API_KEY")
         if not api_key:
@@ -213,7 +209,6 @@ def retrieve_market_telemetry() -> dict:
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def retrieve_news_telemetry() -> list:
-    """Fetches relevant geopolitical news strings."""
     try:
         api_key = st.secrets.get("NEWSDATA_API_KEY")
         if not api_key:
@@ -248,7 +243,6 @@ def retrieve_news_telemetry() -> list:
     return st.session_state.news_baseline
 
 def generate_stochastic_forecast(prices: dict, horizon: int) -> tuple:
-    """Executes a random walk simulation for predictive modeling."""
     np.random.seed(42)
     dates = [(datetime.now() + timedelta(days=i)).strftime('%m-%d') for i in range(1, horizon + 1)]
     matrix = {"Date": dates}
@@ -266,8 +260,7 @@ def generate_stochastic_forecast(prices: dict, horizon: int) -> tuple:
     return pd.DataFrame(matrix), confidence
 
 def render_ui():
-    """Main rendering execution block."""
-    inject_custom_css()
+    apply_minimalist_css()
     initialize_cache()
     
     market_data = retrieve_market_telemetry()
