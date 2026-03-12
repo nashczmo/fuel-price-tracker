@@ -17,7 +17,6 @@ def inject_custom_css():
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
-        /* Enforce Inter Font without breaking Streamlit icon ligatures */
         .stApp, p, h1, h2, h3, h4, h5, h6, label, [data-testid="stMarkdownContainer"] {
             font-family: 'Inter', sans-serif !important;
         }
@@ -33,8 +32,10 @@ def inject_custom_css():
         
         .block-container {
             padding-top: 2rem !important;
-            padding-bottom: 2rem;
-            max-width: 1600px;
+            padding-bottom: 2rem !important;
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+            max-width: 100% !important;
         }
 
         .main-title {
@@ -295,7 +296,6 @@ def inject_custom_css():
             font-weight: 600;
         }
 
-        /* Mobile Optimization Media Queries */
         @media (max-width: 768px) {
             .block-container {
                 padding-top: 1rem !important;
@@ -530,10 +530,14 @@ with col2:
     st.markdown('<div class="stat-label">Estimated Accuracy</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="stat-value">{model_confidence}%</div>', unsafe_allow_html=True)
     
+    # Calculate explicit height to prevent internal scrollbar. Row height ~35px + Header height ~38px.
+    table_height = (days_forecast + 2) * 36
+    
     st.dataframe(
         generated_forecast_dataframe,
         hide_index=True,
-        use_container_width=True
+        use_container_width=True,
+        height=table_height
     )
 
 st.markdown("""
