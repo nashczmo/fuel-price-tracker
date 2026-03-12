@@ -29,82 +29,9 @@ def inject_custom_css():
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         .block-container {
-            padding-top: 0rem !important;
-            padding-bottom: 0rem;
+            padding-top: 2rem !important;
+            padding-bottom: 2rem;
             max-width: 1600px;
-        }
-
-        /* Navbar */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 32px;
-            background-color: #0b0f19;
-            border-bottom: 1px solid #1f2937;
-            margin-bottom: 32px;
-            margin-left: -4rem;
-            margin-right: -4rem;
-        }
-        .nav-brand { 
-            flex: 1;
-            font-weight: 800; 
-            font-size: 1.25rem; 
-            color: #f8fafc; 
-            letter-spacing: -0.5px; 
-        }
-        .nav-links { 
-            flex: 1;
-            display: flex; 
-            justify-content: center;
-            gap: 32px; 
-        }
-        .nav-link { 
-            color: #94a3b8; 
-            text-decoration: none; 
-            font-weight: 600; 
-            font-size: 0.9rem; 
-            padding-bottom: 16px;
-            margin-bottom: -17px;
-        }
-        .nav-link.active { 
-            color: #3b82f6; 
-            border-bottom: 2px solid #3b82f6; 
-        }
-        .nav-right {
-            flex: 1;
-            display: flex;
-            justify-content: flex-end;
-        }
-        .clock {
-            font-family: monospace;
-            font-size: 0.85rem;
-            color: #64748b;
-            border: 1px solid #1f2937;
-            padding: 6px 12px;
-            border-radius: 6px;
-            background: transparent;
-        }
-
-        /* Badges */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            background-color: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 20px;
-            padding: 6px 16px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #cbd5e1;
-            margin-bottom: 24px;
-        }
-        .pulse-dot {
-            height: 8px;
-            width: 8px;
-            background-color: #10b981;
-            border-radius: 50%;
-            margin-right: 8px;
         }
 
         /* Metric Grid */
@@ -150,7 +77,7 @@ def inject_custom_css():
             border-radius: 8px;
             padding: 24px;
             height: 100%;
-            min-height: 400px;
+            min-height: 380px;
         }
         .panel-title {
             color: #f8fafc;
@@ -164,6 +91,81 @@ def inject_custom_css():
         .intel-value { color: #10b981; font-size: 3.5rem; font-weight: 800; margin-bottom: 24px; line-height: 1;}
         .intel-meta { color: #94a3b8; font-size: 0.85rem; line-height: 1.8; }
         .intel-meta strong { color: #cbd5e1; }
+        
+        /* News Cards */
+        .news-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-top: 48px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .news-header svg {
+            width: 20px;
+            height: 20px;
+            fill: #94a3b8;
+        }
+        .news-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .news-card {
+            background-color: #111827;
+            border: 1px solid #1f2937;
+            border-top: 3px solid #3b82f6;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        .news-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 16px;
+        }
+        .news-body {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .news-link {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #3b82f6;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        /* Expanders Override */
+        [data-testid="stExpander"] {
+            background-color: #0b0f19;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        [data-testid="stExpander"] summary {
+            color: #f8fafc;
+            font-weight: 600;
+            padding: 16px;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 64px;
+            padding-bottom: 32px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        .footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
         </style>
     """, unsafe_allow_html=True)
 
@@ -242,7 +244,7 @@ def build_interactive_chart(forecast_df):
         y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title=None, axis=alt.Axis(grid=True, gridColor='#1f2937', labelColor='#94a3b8')),
         color=alt.Color('Fuel Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444']), legend=None),
         tooltip=['Date', 'Fuel Type', 'Price']
-    ).properties(height=320).configure_view(strokeWidth=0).configure_axis(domain=False)
+    ).properties(height=280).configure_view(strokeWidth=0).configure_axis(domain=False)
     st.altair_chart(line_chart, use_container_width=True)
 
 inject_custom_css()
@@ -253,25 +255,6 @@ structured_pump_prices = {
     "91": live_market_data["p91"], "95": live_market_data["p95"],
     "97": live_market_data["p97"], "dsl": live_market_data["dsl"]
 }
-
-st.markdown(f"""
-    <div class="navbar">
-        <div class="nav-brand">FuelTrack</div>
-        <div class="nav-links">
-            <div class="nav-link active">Dashboard</div>
-            <div class="nav-link">Logistics Calculator</div>
-        </div>
-        <div class="nav-right">
-            <div class="clock">{live_market_data['timestamp']}</div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-    <div class="status-badge">
-        <span class="pulse-dot"></span> Initialization Sequence...
-    </div>
-""", unsafe_allow_html=True)
 
 st.markdown(f"""
     <div class="metric-grid">
@@ -302,12 +285,8 @@ col1, col2 = st.columns([2.5, 1])
 generated_forecast_dataframe, model_confidence = generate_forecast_dataframe(structured_pump_prices, 7)
 
 with col1:
-    st.markdown("""
-        <div class="panel-container" style="padding-bottom: 0px;">
-            <div class="panel-title">Price Trend Prediction (7 Days)</div>
-        </div>
-    """, unsafe_allow_html=True)
-    st.markdown('<div style="margin-top: -340px; padding: 24px;">', unsafe_allow_html=True)
+    st.markdown('<div class="panel-container">', unsafe_allow_html=True)
+    st.markdown('<div class="panel-title">Price Trend Prediction (7 Days)</div>', unsafe_allow_html=True)
     build_interactive_chart(generated_forecast_dataframe)
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -323,3 +302,36 @@ with col2:
             </div>
         </div>
     """, unsafe_allow_html=True)
+
+st.markdown("""
+    <div class="news-header">
+        Latest Market Intelligence
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+        </svg>
+    </div>
+    <div class="news-grid">
+        <div class="news-card">
+            <div class="news-title">House OKs bill allowing Marcos to tweak excise tax on fuel on 2nd reading</div>
+            <div class="news-body">THE HOUSE of Representatives on Wednesday passed on second reading a bill authorizing President Ferdinand R. Marcos, Jr. to suspend or cut excise taxes on fuel ...</div>
+            <a href="#" class="news-link">ACCESS SOURCE (BWORLDONLINE)</a>
+        </div>
+        <div class="news-card">
+            <div class="news-title">House panel approves measure on fuel excise taxes suspension</div>
+            <div class="news-body">The House of Representatives approved on second reading Wednesday a measure that would authorize President Ferdinand Marcos Jr. to temporarily suspend or reduce</div>
+            <a href="#" class="news-link">ACCESS SOURCE (TRIBUNE)</a>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+with st.expander("How We Calculate Our Data (Methodology)"):
+    st.write("Methodology details and algorithmic implementation logic.")
+
+with st.expander("Definition of Fuel Types"):
+    st.write("Fuel grade specifications and market classifications.")
+
+st.markdown("""
+    <div class="footer">
+        Developed by <a href="#">Ignacio L.</a> and <a href="#">Andrei B.</a>
+    </div>
+""", unsafe_allow_html=True)
