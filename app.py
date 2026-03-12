@@ -443,7 +443,7 @@ def analyze_news_sentiment(articles):
 def generate_forecast_dataframe(base_prices, forecast_horizon_days, sentiment_bias):
     np.random.seed(42)
     current_time = datetime.now()
-    generation_dates = [(current_time + timedelta(days=i)).strftime('%a, %b %d') for i in range(1, forecast_horizon_days + 1)]
+    generation_dates = [(current_time + timedelta(days=i)).strftime('%a, %b %d') for i in range(forecast_horizon_days)]
     
     mapping = {
         "91": "91 RON (Xtra Advance / FuelSave / Silver)",
@@ -502,59 +502,7 @@ structured_pump_prices = {
     "97": live_market_data["p97"], "dsl": live_market_data["dsl"]
 }
 
-st.markdown('<div class="main-title">Philippine Fuel Price Tracker</div>', unsafe_allow_html=True)
-
-alert_msg = "MARKET ALERT: Recent global news suggests minor or standard market fluctuations."
-if sentiment_bias > 0.005:
-    alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO UP soon due to global supply concerns."
-elif sentiment_bias < -0.005:
-    alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO DOWN soon due to increased global supply."
-
-st.markdown(f"""
-    <div class="alert-box">
-        <strong>{alert_msg}</strong>
-    </div>
-""", unsafe_allow_html=True)
-
-st.markdown('<div class="section-title">Estimated Current Pump Prices</div>', unsafe_allow_html=True)
-
-current_time_str = datetime.now().strftime("%B %d, %Y | %I:%M %p PST")
-st.markdown(f"""
-    <div class="time-badge">
-        <span class="pulse-dot"></span> As of {current_time_str}
-        <div class="info-tooltip">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24">
-                <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-            </svg>
-            <span class="tooltip-text"><strong>Live Updates:</strong> Prices automatically update every 5 minutes by checking global oil trends and scanning breaking news.</span>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-st.markdown(f"""
-    <div class="metric-grid">
-        <div class="metric-card">
-            <div class="metric-label">91 REGULAR</div>
-            <div class="metric-value">&#8369;{live_market_data['p91']:.2f}</div>
-            <div class="metric-sub">Xtra Advance, FuelSave</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">95 OCTANE</div>
-            <div class="metric-value">&#8369;{live_market_data['p95']:.2f}</div>
-            <div class="metric-sub">XCS, V-Power</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">97+ ULTRA</div>
-            <div class="metric-value">&#8369;{live_market_data['p97']:.2f}</div>
-            <div class="metric-sub">Blaze 100, Racing</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">DIESEL</div>
-            <div class="metric-value">&#8369;{live_market_data['dsl']:.2f}</div>
-            <div class="metric-sub">Turbo, Power Diesel</div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
+top_section = st.container()
 
 prediction_period = st.selectbox("Select Prediction Period", ["7 Days Forecast", "14 Days Forecast", "30 Days Forecast"])
 days_forecast = int(prediction_period.split()[0])
@@ -574,8 +522,69 @@ selected_fuels = st.multiselect(
 
 st.markdown("<hr style='border-color: #1f2937; margin: 32px 0;'>", unsafe_allow_html=True)
 
-col1, col2 = st.columns([2.5, 1], gap="large")
 generated_forecast_dataframe, model_confidence = generate_forecast_dataframe(structured_pump_prices, days_forecast, sentiment_bias)
+
+pred_91 = generated_forecast_dataframe["91 RON (Xtra Advance / FuelSave / Silver)"].iloc[0]
+pred_95 = generated_forecast_dataframe["95 RON (XCS / V-Power / Platinum)"].iloc[0]
+pred_97 = generated_forecast_dataframe["97+ RON (Blaze 100 / Racing)"].iloc[0]
+pred_dsl = generated_forecast_dataframe["Diesel (Turbo / Max / Power)"].iloc[0]
+
+with top_section:
+    st.markdown('<div class="main-title">Philippine Fuel Price Tracker</div>', unsafe_allow_html=True)
+
+    alert_msg = "MARKET ALERT: Recent global news suggests minor or standard market fluctuations."
+    if sentiment_bias > 0.005:
+        alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO UP soon due to global supply concerns."
+    elif sentiment_bias < -0.005:
+        alert_msg = "MARKET ALERT: Recent news suggests fuel prices might GO DOWN soon due to increased global supply."
+
+    st.markdown(f"""
+        <div class="alert-box">
+            <strong>{alert_msg}</strong>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="section-title">Estimated Current Pump Prices</div>', unsafe_allow_html=True)
+
+    current_time_str = datetime.now().strftime("%B %d, %Y | %I:%M %p PST")
+    st.markdown(f"""
+        <div class="time-badge">
+            <span class="pulse-dot"></span> As of {current_time_str}
+            <div class="info-tooltip">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24">
+                    <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                </svg>
+                <span class="tooltip-text"><strong>Live Updates:</strong> Prices automatically update every 5 minutes by checking global oil trends and scanning breaking news.</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"""
+        <div class="metric-grid">
+            <div class="metric-card">
+                <div class="metric-label">91 REGULAR</div>
+                <div class="metric-value">&#8369;{pred_91:.2f}</div>
+                <div class="metric-sub">Xtra Advance, FuelSave</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">95 OCTANE</div>
+                <div class="metric-value">&#8369;{pred_95:.2f}</div>
+                <div class="metric-sub">XCS, V-Power</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">97+ ULTRA</div>
+                <div class="metric-value">&#8369;{pred_97:.2f}</div>
+                <div class="metric-sub">Blaze 100, Racing</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">DIESEL</div>
+                <div class="metric-value">&#8369;{pred_dsl:.2f}</div>
+                <div class="metric-sub">Turbo, Power Diesel</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+col1, col2 = st.columns([2.5, 1], gap="large")
 
 with col1:
     st.markdown(f'<div class="sub-header">Price Trend Prediction ({days_forecast} Days)</div>', unsafe_allow_html=True)
