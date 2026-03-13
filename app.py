@@ -36,30 +36,30 @@ def inject_custom_css():
         footer {visibility: hidden;}
         
         /* Layout Optimization */
-        .block-container { 
-            padding-top: 2rem !important; 
-            padding-bottom: 2rem !important; 
-            padding-left: 4% !important; 
-            padding-right: 4% !important; 
-            max-width: 1650px !important; 
+        .block-container {
+            padding-top: 2rem !important;
+            padding-bottom: 2rem !important;
+            padding-left: 4% !important;
+            padding-right: 4% !important;
+            max-width: 1650px !important;
         }
 
         /* Headers and Tags */
-        .main-title { 
-            font-size: 2.2rem; 
-            font-weight: 800; 
-            color: #ffffff; 
-            margin-bottom: 0.2rem; 
-            letter-spacing: -0.5px; 
+        .main-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.2rem;
+            letter-spacing: -0.5px;
         }
 
-        .version-tag { 
-            font-size: 0.85rem; 
-            color: #3b82f6; 
-            font-weight: 600; 
-            margin-bottom: 1.5rem; 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
+        .version-tag {
+            font-size: 0.85rem;
+            color: #3b82f6;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .time-badge {
@@ -75,31 +75,31 @@ def inject_custom_css():
             margin-bottom: 24px;
         }
         
-        .pulse-dot { 
-            height: 8px; 
-            width: 8px; 
-            background-color: #10b981; 
-            border-radius: 50%; 
-            margin-right: 8px; 
+        .pulse-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            margin-right: 8px;
         }
 
         /* Information Tooltips */
-        .info-tooltip { 
-            position: relative; 
-            display: inline-flex; 
-            align-items: center; 
-            margin-left: 8px; 
-            cursor: pointer; 
-            vertical-align: middle; 
+        .info-tooltip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 8px;
+            cursor: pointer;
+            vertical-align: middle;
         }
         
-        .info-tooltip svg { 
-            fill: #94a3b8; 
-            transition: fill 0.2s; 
+        .info-tooltip svg {
+            fill: #94a3b8;
+            transition: fill 0.2s;
         }
         
-        .info-tooltip:hover svg { 
-            fill: #e2e8f0; 
+        .info-tooltip:hover svg {
+            fill: #e2e8f0;
         }
         
         .info-tooltip .tooltip-text {
@@ -160,42 +160,42 @@ def inject_custom_css():
         }
 
         /* Metrics and Cards */
-        .metric-grid { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 20px; 
-            margin-bottom: 32px; 
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
         }
-        
-        .metric-card { 
-            background-color: #111520; 
-            border: 1px solid #1f2937; 
-            border-radius: 8px; 
-            padding: 32px 24px; 
-            text-align: center; 
+
+        .metric-card {
+            background-color: #111520;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            padding: 32px 24px;
+            text-align: center;
         }
-        
-        .metric-label { 
-            color: #94a3b8; 
-            font-size: 0.75rem; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            margin-bottom: 16px; 
-            letter-spacing: 0.5px; 
+
+        .metric-label {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
         }
-        
-        .metric-value { 
-            color: #ffffff; 
-            font-size: 2.5rem; 
-            font-weight: 800; 
-            line-height: 1; 
-            margin: 0; 
+
+        .metric-value {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin: 0;
         }
-        
-        .metric-sub { 
-            color: #475569; 
-            font-size: 0.75rem; 
-            margin-top: 16px; 
+
+        .metric-sub {
+            color: #475569;
+            font-size: 0.75rem;
+            margin-top: 16px;
         }
 
         /* Sub-headers and Stats */
@@ -205,7 +205,7 @@ def inject_custom_css():
             color: #ffffff;
             margin-bottom: 16px;
         }
-        
+
         .stat-label {
             color: #e2e8f0;
             font-size: 0.85rem;
@@ -213,7 +213,7 @@ def inject_custom_css():
             display: flex;
             align-items: center;
         }
-        
+
         .stat-value {
             color: #e2e8f0;
             font-size: 2rem;
@@ -239,20 +239,20 @@ def inject_custom_css():
             align-items: center;
             gap: 8px;
         }
-        
+
         .news-header svg {
             width: 20px;
             height: 20px;
             fill: #94a3b8;
         }
-        
-        .news-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 24px; 
-            margin-bottom: 48px; 
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 48px;
         }
-        
+
         .news-card {
             background-color: #111520;
             border: 1px solid #1f2937;
@@ -264,27 +264,27 @@ def inject_custom_css():
             justify-content: space-between;
             min-height: 180px;
         }
-        
-        .news-title { 
-            font-size: 1.1rem; 
-            font-weight: 700; 
-            color: #f8fafc; 
-            margin-bottom: 16px; 
+
+        .news-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 16px;
         }
-        
-        .news-body { 
-            font-size: 0.9rem; 
-            color: #94a3b8; 
-            line-height: 1.6; 
-            margin-bottom: 24px; 
+
+        .news-body {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 24px;
         }
-        
-        .news-link { 
-            font-size: 0.8rem; 
-            font-weight: 600; 
-            color: #3b82f6; 
-            text-decoration: none; 
-            text-transform: uppercase; 
+
+        .news-link {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #3b82f6;
+            text-decoration: none;
+            text-transform: uppercase;
         }
 
         /* Expanders */
@@ -294,7 +294,7 @@ def inject_custom_css():
             border-radius: 8px;
             margin-bottom: 12px;
         }
-        
+
         [data-testid="stExpander"] summary {
             color: #f8fafc;
             font-weight: 600;
@@ -303,14 +303,14 @@ def inject_custom_css():
             align-items: center;
             gap: 8px;
         }
-        
+
         [data-testid="stExpanderDetails"] {
             color: #94a3b8;
             font-size: 0.9rem;
             line-height: 1.6;
             padding: 0 16px 16px 16px;
         }
-        
+
         /* Footer */
         .footer {
             text-align: center;
@@ -320,7 +320,7 @@ def inject_custom_css():
             color: #64748b;
             line-height: 1.8;
         }
-        
+
         .footer a {
             color: #3b82f6;
             text-decoration: none;
@@ -412,16 +412,11 @@ def compute_linear_regression(brent_price, php_rate):
 # ---------------------------------------------------------
 @st.cache_data(ttl=300, show_spinner=False)
 def fetch_comprehensive_market_data():
+    """Fetches real-time macroeconomic indicators from FRED."""
     try:
         fred_api_key = st.secrets.get("FRED_API_KEY", None)
-        if not fred_api_key: 
-            return {
-                "fx": 59.68, 
-                "p91": 63.50, 
-                "p95": 69.20, 
-                "p97": 75.40, 
-                "dsl": 65.10
-            }
+        if not fred_api_key:
+            return st.session_state.last_market_data
             
         req_params = {
             "api_key": fred_api_key, 
@@ -465,6 +460,7 @@ def fetch_comprehensive_market_data():
 
 @st.cache_data(ttl=300, show_spinner=False)
 def fetch_local_oil_intelligence():
+    """Fetches purely local Philippine news regarding fuel and oil."""
     fallback_news = [
         {
             "title": "Legislative Review of Fuel Excise Tax Initiated", 
@@ -485,7 +481,7 @@ def fetch_local_oil_intelligence():
         if not newsdata_api_key: 
             return fallback_news
             
-        # Target exclusively PH domains and relevant keywords
+        # Target exclusively PH domains and relevant keywords to limit to 200 req/day quota usage effectively
         url = f"https://newsdata.io/api/1/news?apikey={newsdata_api_key}&country=ph&q=fuel%20OR%20oil%20OR%20gasoline%20OR%20diesel&language=en"
         response = requests.get(url, timeout=5)
         
@@ -508,6 +504,7 @@ def fetch_local_oil_intelligence():
 
 
 def analyze_news_sentiment(articles):
+    """Extracts a mathematical sentiment bias from the news to adjust price trajectories."""
     bullish_words = ['hike', 'increase', 'surge', 'conflict', 'war', 'shortage', 'upward', 'soar', 'unrest', 'tighten']
     bearish_words = ['rollback', 'decrease', 'drop', 'slump', 'surplus', 'ease', 'plunge', 'cheaper', 'suspend']
     
@@ -523,17 +520,18 @@ def analyze_news_sentiment(articles):
             if word in text: 
                 score -= 0.003
                 
-    # Cap the sentiment bias to avoid wildly unrealistic projections
     return max(min(score, 0.015), -0.015)
 
 
 @st.cache_data(ttl=300, show_spinner=False)
 def generate_forecast_dataframe(base_prices, forecast_horizon_days, sentiment_bias):
+    """Generates the stochastic forecast and calculates dynamic model confidence."""
     np.random.seed(42)
     current_time = datetime.now()
     
     generation_dates = [(current_time + timedelta(days=i)).strftime('%a, %b %d') for i in range(forecast_horizon_days)]
     
+    # Safe mapping to prevent KeyErrors
     mapping = {
         "p91": "91 RON", 
         "p95": "95 RON", 
@@ -545,14 +543,14 @@ def generate_forecast_dataframe(base_prices, forecast_horizon_days, sentiment_bi
     adjusted_drift = 0.002 + sentiment_bias
     
     for fuel_grade, current_price in base_prices.items():
-        if fuel_grade in mapping:  # Safety check to avoid KeyError (e.g., ignoring 'fx' or 'timestamp')
+        if fuel_grade in mapping:  
             daily_price_shocks = np.random.normal(adjusted_drift, 0.012, forecast_horizon_days)
             cumulative_shocks = np.cumprod(1 + daily_price_shocks)
             stochastic_data[mapping[fuel_grade]] = np.round(current_price * cumulative_shocks, 2)
             
     df = pd.DataFrame(stochastic_data)
     
-    # Mathematical Confidence Decay Formula
+    # Dynamic Mathematical Confidence Decay Formula based on selected horizon
     dynamic_confidence = round(100 * math.exp(-0.01 * forecast_horizon_days), 1)
     
     return df, dynamic_confidence
@@ -564,7 +562,7 @@ def generate_forecast_dataframe(base_prices, forecast_horizon_days, sentiment_bi
 inject_custom_css()
 initialize_session_state()
 
-# Fetch backend data
+# Execute Backend Logic
 live_market_data = fetch_comprehensive_market_data()
 philippine_news = fetch_local_oil_intelligence()
 sentiment_bias = analyze_news_sentiment(philippine_news)
@@ -572,7 +570,7 @@ sentiment_bias = analyze_news_sentiment(philippine_news)
 st.markdown('<div class="main-title">Philippine Fuel Price Tracker</div>', unsafe_allow_html=True)
 st.markdown('<div class="version-tag">FuelTrack 1.1</div>', unsafe_allow_html=True)
 
-# Options Input
+# Main User Controls
 prediction_period = st.selectbox("Select Prediction Period", ["7 Days Forecast", "14 Days Forecast", "30 Days Forecast"])
 days_forecast = int(prediction_period.split()[0])
 
@@ -591,10 +589,10 @@ selected_fuels = st.multiselect(
 
 st.markdown("<hr style='border-color: #1f2937; margin: 32px 0;'>", unsafe_allow_html=True)
 
-# Generate Dynamic Synchronized Data
+# Generate Dynamic Synchronized Data Models
 generated_forecast_dataframe, model_confidence = generate_forecast_dataframe(live_market_data, days_forecast, sentiment_bias)
 
-# Top Market Alert
+# Top Market Alert Processing
 alert_text = "Current macroeconomic indicators present standard market conditions with minimal variance."
 if sentiment_bias > 0.005: 
     alert_text = "Market indicators suggest an upward trajectory in commodity pricing based on local supply constraints."
@@ -609,7 +607,7 @@ st.markdown(f"""
 
 st.markdown('<div class="section-title">Estimated Current Pump Prices</div>', unsafe_allow_html=True)
 
-# Time Badge with Tooltip
+# Synchronized Time Badge
 current_time_str = datetime.now().strftime("%B %d, %Y | %I:%M %p PST")
 st.markdown(f"""
     <div class="time-badge">
@@ -623,7 +621,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Top Metric Cards (Synchronized with Day 0 Forecast)
+# Unified Metric Cards (Synchronized strictly with Forecast Day 0)
 pred_91 = generated_forecast_dataframe["91 RON"].iloc[0]
 pred_95 = generated_forecast_dataframe["95 RON"].iloc[0]
 pred_97 = generated_forecast_dataframe["97+ RON"].iloc[0]
@@ -654,7 +652,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Graph and Data Layout Columns
+# Visualizations and Data Tables
 col_vis, col_data = st.columns([2.5, 1], gap="large")
 
 with col_vis:
@@ -700,6 +698,7 @@ with col_data:
         </div>
     """, unsafe_allow_html=True)
     
+    # This value dynamically updates based on the selected days
     st.markdown(f'<div class="stat-value">{model_confidence}%</div>', unsafe_allow_html=True)
     
     display_df = generated_forecast_dataframe[["Date"] + selected_fuels].copy()
@@ -710,7 +709,9 @@ with col_data:
         height=340
     )
 
-# News Intelligence Section
+# ---------------------------------------------------------
+# REGIONAL NEWS MODULE
+# ---------------------------------------------------------
 st.markdown("""
     <div class="news-header">
         Latest Regional Market Intelligence
@@ -740,7 +741,9 @@ news_html += '</div>'
 
 st.markdown(news_html, unsafe_allow_html=True)
 
-# Methodology & Definitions
+# ---------------------------------------------------------
+# METHODOLOGY AND DEFINITIONS
+# ---------------------------------------------------------
 with st.expander("Analytical Methodology and Data Integrity Statement"):
     st.markdown("""
     **I. Data Acquisition Protocols.** The system utilizes an automated interface to retrieve high-frequency macroeconomic data from the Federal Reserve Economic Data (FRED) repository. Monitored parameters include global Brent Crude valuations and the USD/PHP exchange rate index.
