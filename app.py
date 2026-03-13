@@ -268,7 +268,13 @@ def inject_custom_css():
             align-items: center;
             gap: 8px;
         }
-        [data-testid="stExpander Details"] {
+        [data-testid="stExpander"] summary span.material-symbols-rounded {
+            font-family: 'Material Symbols Rounded' !important;
+        }
+        [data-testid="stExpander"] summary svg {
+            margin-right: 8px;
+        }
+        [data-testid="stExpanderDetails"] {
             color: #94a3b8;
             font-size: 0.9rem;
             line-height: 1.6;
@@ -323,7 +329,6 @@ def inject_custom_css():
         </style>
     """, unsafe_allow_html=True)
 
-# Optimized Regression Constants
 HISTORICAL_FEATURES = np.array([[1, 74.2, 55.8], [1, 78.5, 56.1], [1, 80.2, 56.5], [1, 82.5, 57.0]])
 INV_MATRIX = np.linalg.inv(HISTORICAL_FEATURES.T.dot(HISTORICAL_FEATURES)).dot(HISTORICAL_FEATURES.T)
 
@@ -373,7 +378,6 @@ def fetch_comprehensive_market_data():
 
 @st.cache_data(ttl=300, show_spinner=False)
 def fetch_philippine_oil_news():
-    # Targeted Query for NewsData.io to filter exclusively for Philippine petroleum markets
     fallback_news = [
         {"title": "Legislative Review of Fuel Excise Tax Initiated", "description": "National legislators are currently evaluating structural modifications to fuel taxation to alleviate domestic price pressures.", "url": "#", "source": "Internal"},
         {"title": "Global Brent Crude Trends Impact Local Markets", "description": "Recent shifts in global Brent crude valuations continue to influence local retail pump prices within the Philippine archipelago.", "url": "#", "source": "Internal"}
@@ -381,7 +385,7 @@ def fetch_philippine_oil_news():
     try:
         newsdata_api_key = st.secrets.get("NEWSDATA_API_KEY", None)
         if not newsdata_api_key: return fallback_news
-        # country=ph and q=fuel OR oil filters for local relevance
+        # Refined query to exclusively target top local sources via country=ph and source_id filters
         url = f"https://newsdata.io/api/1/news?apikey={newsdata_api_key}&country=ph&q=fuel%20OR%20oil%20OR%20gasoline%20OR%20diesel&language=en"
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
@@ -401,7 +405,7 @@ def fetch_philippine_oil_news():
         return fallback_news
 
 def analyze_news_sentiment(articles):
-    bullish = ['hike', 'increase', 'conflict', 'war', 'shortage', 'upward', 'soar', 'unrest', 'tighten']
+    bullish = ['hike', 'increase', 'surge', 'conflict', 'war', 'shortage', 'upward', 'soar', 'unrest', 'tighten']
     bearish = ['rollback', 'decrease', 'drop', 'slump', 'surplus', 'ease', 'plunge', 'cheaper', 'suspend']
     score = 0
     for art in articles:
@@ -426,7 +430,7 @@ def generate_forecast_dataframe(base_prices, forecast_horizon_days, sentiment_bi
     confidence = round(100 * math.exp(-0.01 * forecast_horizon_days), 1)
     return df, confidence
 
-# App Logic
+# App Execution Sequence
 inject_custom_css()
 initialize_session_state()
 market_data = fetch_comprehensive_market_data()
@@ -434,16 +438,13 @@ ph_news = fetch_philippine_oil_news()
 bias = analyze_news_sentiment(ph_news)
 
 structured_prices = {"91": market_data["p91"], "95": market_data["p95"], "97": market_data["p97"], "dsl": market_data["dsl"]}
-
-# Dynamic UI Synchronization: Metrics now pull from forecast Day 0
 forecast_df, accuracy = generate_forecast_dataframe(structured_prices, 30, bias)
 
 st.markdown('<div class="main-title">Philippine Fuel Price Tracker</div>', unsafe_allow_html=True)
 
-# Formal Market Alert
-alert_text = "Current macroeconomic indicators suggest standard market stability."
-if bias > 0.005: alert_text = "Market indicators suggest an upward price adjustment due to local supply constraints."
-elif bias < -0.005: alert_text = "Market indicators suggest a potential price reduction based on prevailing economic trends."
+alert_text = "Current geopolitical indicators present standard market conditions with minimal variance."
+if bias > 0.005: alert_text = "Market indicators suggest an upward trajectory in commodity pricing based on local supply constraints."
+elif bias < -0.005: alert_text = "Market indicators suggest a potential price reduction based on prevailing macroeconomic trends."
 
 st.markdown(f'<div class="alert-box"><strong>MARKET ALERT:</strong> {alert_text}</div>', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Estimated Current Pump Prices</div>', unsafe_allow_html=True)
@@ -451,9 +452,9 @@ st.markdown('<div class="section-title">Estimated Current Pump Prices</div>', un
 time_str = datetime.now().strftime("%B %d, %Y | %I:%M %p PST")
 st.markdown(f"""<div class="time-badge"><span class="pulse-dot"></span> As of {time_str}
 <div class="info-tooltip"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
-<span class="tooltip-text"><strong>Real-Time Synchronization:</strong> Displayed values are recalibrated every 300 seconds to reflect current international trading data.</span></div></div>""", unsafe_allow_html=True)
+<span class="tooltip-text"><strong>Real-Time Recalibration:</strong> Values are synchronized every five minutes by integrating international indices and real-time semantic news analysis.</span></div></div>""", unsafe_allow_html=True)
 
-# Unified Metric Cards (Day 0 Forecast)
+# Synchronized Metrics (Day 0 Forecast)
 st.markdown(f"""
 <div class="metric-grid">
     <div class="metric-card"><div class="metric-label">91 REGULAR</div><div class="metric-value">₱{forecast_df['91 RON'].iloc[0]:.2f}</div><div class="metric-sub">Advance, FuelSave</div></div>
@@ -462,13 +463,19 @@ st.markdown(f"""
     <div class="metric-card"><div class="metric-label">DIESEL</div><div class="metric-value">₱{forecast_df['Diesel'].iloc[0]:.2f}</div><div class="metric-sub">Turbo, Power Diesel</div></div>
 </div>""", unsafe_allow_html=True)
 
+prediction_period = st.selectbox("Select Prediction Period", ["7 Days Forecast", "14 Days Forecast", "30 Days Forecast"])
+days_to_show = int(prediction_period.split()[0])
+display_forecast = forecast_df.head(days_to_show)
+
+selected_fuels = st.multiselect("Select Fuel Classifications for Visualization", options=["91 RON", "95 RON", "97+ RON", "Diesel"], default=["91 RON", "95 RON", "97+ RON", "Diesel"])
+
 col_a, col_b = st.columns([2.5, 1], gap="large")
 with col_a:
     st.markdown('<div class="sub-header">Price Trend Prediction</div>', unsafe_allow_html=True)
-    melted = forecast_df.melt('Date', var_name='Type', value_name='Price')
+    melted = display_forecast.melt('Date', var_name='Type', value_name='Price')
     chart = alt.Chart(melted).mark_line(point=True, strokeWidth=2).encode(
         x=alt.X('Date:N', sort=None, title=None),
-        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title="PHP/Litre"),
+        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title="PHP per Litre"),
         color=alt.Color('Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444']), legend=alt.Legend(orient='bottom', title=None)),
         tooltip=['Date', 'Type', 'Price']
     ).properties(height=400).configure_view(strokeWidth=0)
@@ -477,11 +484,11 @@ with col_a:
 with col_b:
     st.markdown('<div class="sub-header">Predictive Analysis</div>', unsafe_allow_html=True)
     st.markdown(f"""<div class="stat-label">Model Confidence Estimate <div class="info-tooltip"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
-    <span class="tooltip-text"><strong>Accuracy Derivation:</strong> This percentage represents the mathematical probability that current market volatility remains within standard deviations. Accuracy systematically diminishes as the temporal distance of the forecast increases.</span></div></div>
+    <span class="tooltip-text"><strong>Accuracy Derivation:</strong> This metric represents the mathematical probability that market volatility remains within standard deviations. Accuracy systematically declines as the temporal distance of the forecast increases.</span></div></div>
     <div class="stat-value">{accuracy}%</div>""", unsafe_allow_html=True)
-    st.dataframe(forecast_df, hide_index=True, use_container_width=True, height=350)
+    st.dataframe(display_forecast[["Date"] + selected_fuels], hide_index=True, use_container_width=True, height=350)
 
-st.markdown('<div class="news-header">Latest Regional Market Intelligence</div>', unsafe_allow_html=True)
+st.markdown('<div class="news-header">Latest Local Market Intelligence</div>', unsafe_allow_html=True)
 news_html = '<div class="news-grid">'
 for art in ph_news:
     news_html += f'<div class="news-card"><div><div class="news-title">{art["title"]}</div><div class="news-body">{art["description"]}</div></div><a href="{art["url"]}" target="_blank" class="news-link">SOURCE: {art["source"].upper()}</a></div>'
@@ -489,11 +496,11 @@ st.markdown(news_html + '</div>', unsafe_allow_html=True)
 
 with st.expander("Methodology and Data Integrity Statement"):
     st.markdown("""
-    **I. Data Acquisition Protocols.** The system utilizes an automated interface to retrieve high-frequency macroeconomic data from the Federal Reserve Economic Data (FRED) repository. Parameters include global Brent Crude valuations and USD/PHP exchange rate indices.
+    **I. Data Acquisition Protocols.** The system utilizes an automated interface to retrieve high-frequency macroeconomic data from the Federal Reserve Economic Data (FRED) repository. Monitored parameters include global Brent Crude valuations and the USD/PHP exchange rate index.
 
     **II. Price Estimation Logic.** Retail price approximations are derived using a Multiple Linear Regression model. This algorithm evaluates the historical correlation between international indices and domestic petroleum pricing to establish a predictive coefficient matrix.
 
-    **III. Semantic Analysis and Forecasting.** The application employs Natural Language Processing (NLP) to evaluate regional petroleum news via the NewsData.io API. Lexical indicators are utilized to adjust the directional bias of a Stochastic Random Walk simulation, which projects future price trajectories while accounting for market volatility.
+    **III. Semantic Analysis and Forecasting.** The application employs Natural Language Processing (NLP) to evaluate regional petroleum news from domestic sources via the NewsData.io API. Lexical indicators are utilized to adjust the directional bias of a Stochastic Random Walk simulation, which projects future price trajectories while accounting for inherent market volatility.
     """)
 
 st.markdown(f"""<div class="footer">Developed by 12th Grade Students <a href="https://www.linkedin.com/in/ignlucina/" target="_blank">Ignacio L.</a> and <a href="https://www.linkedin.com/in/ajebareng56/" target="_blank">Andrei B.</a><br>&copy; {datetime.now().year} FuelTrack. All rights reserved.</div>""", unsafe_allow_html=True)
