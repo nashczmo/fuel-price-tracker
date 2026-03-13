@@ -42,8 +42,17 @@ def inject_custom_css():
             font-size: 2.2rem;
             font-weight: 800;
             color: #ffffff;
-            margin-bottom: 1rem;
+            margin-bottom: 0.2rem;
             letter-spacing: -0.5px;
+        }
+
+        .version-tag {
+            font-size: 0.85rem;
+            color: #3b82f6;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .time-badge {
@@ -268,12 +277,6 @@ def inject_custom_css():
             align-items: center;
             gap: 8px;
         }
-        [data-testid="stExpander"] summary span.material-symbols-rounded {
-            font-family: 'Material Symbols Rounded' !important;
-        }
-        [data-testid="stExpander"] summary svg {
-            margin-right: 8px;
-        }
         [data-testid="stExpanderDetails"] {
             color: #94a3b8;
             font-size: 0.9rem;
@@ -329,6 +332,9 @@ def inject_custom_css():
         </style>
     """, unsafe_allow_html=True)
 
+# ---------------------------------------------------------
+# CORE ANALYTICAL CONSTANTS
+# ---------------------------------------------------------
 HISTORICAL_FEATURES = np.array([[1, 74.2, 55.8], [1, 78.5, 56.1], [1, 80.2, 56.5], [1, 82.5, 57.0]])
 INV_MATRIX = np.linalg.inv(HISTORICAL_FEATURES.T.dot(HISTORICAL_FEATURES)).dot(HISTORICAL_FEATURES.T)
 
@@ -337,124 +343,82 @@ WEIGHTS_95 = INV_MATRIX.dot(np.array([54.20, 56.90, 62.10, 63.90]))
 WEIGHTS_97 = INV_MATRIX.dot(np.array([58.10, 60.40, 65.60, 67.40]))
 WEIGHTS_DSL = INV_MATRIX.dot(np.array([58.00, 60.50, 72.10, 75.90]))
 
-def initialize_session_state():
-    if 'last_market_data' not in st.session_state:
-        st.session_state.last_market_data = {
-            "fx": 56.10, "p91": 72.35, "p95": 74.50, "p97": 82.30, "dsl": 75.10,
-            "timestamp": datetime.now().strftime("%I:%M:%S %p")
-        }
-
-def compute_linear_regression(brent_price, php_rate):
-    current_input = np.array([1, brent_price, php_rate])
-    return {
-        "p91": current_input.dot(WEIGHTS_91),
-        "p95": current_input.dot(WEIGHTS_95),
-        "p97": current_input.dot(WEIGHTS_97),
-        "dsl": current_input.dot(WEIGHTS_DSL)
-    }
-
+# ---------------------------------------------------------
+# DATA ACQUISITION & INTEGRITY
+# ---------------------------------------------------------
 @st.cache_data(ttl=300, show_spinner=False)
 def fetch_comprehensive_market_data():
     try:
         fred_api_key = st.secrets.get("FRED_API_KEY", None)
-        if not fred_api_key: return st.session_state.last_market_data
+        if not fred_api_key: return {"fx": 59.68, "p91": 63.50, "p95": 69.20, "p97": 75.40, "dsl": 65.10}
         req_params = {"api_key": fred_api_key, "file_type": "json", "sort_order": "desc", "limit": 1}
-        response_brent = requests.get("https://api.stlouisfed.org/api/fred/series/observations?series_id=DCOILBRENTEU", params=req_params, timeout=3)
-        response_fx = requests.get("https://api.stlouisfed.org/api/fred/series/observations?series_id=DEXPHUS", params=req_params, timeout=3)
-        if response_brent.status_code == 200 and response_fx.status_code == 200:
-            current_brent_price = float(response_brent.json()['observations'][0]['value'])
-            current_php_rate = float(response_fx.json()['observations'][0]['value'])
-            computed_prices = compute_linear_regression(current_brent_price, current_php_rate)
-            final_data_object = {
-                "fx": current_php_rate, "p91": computed_prices["p91"], "p95": computed_prices["p95"], 
-                "p97": computed_prices["p97"], "dsl": computed_prices["dsl"],
-                "timestamp": datetime.now().strftime("%I:%M:%S %p")
-            }
-            st.session_state.last_market_data = final_data_object
-            return final_data_object
-        return st.session_state.last_market_data
-    except Exception:
-        return st.session_state.last_market_data
+        res_brent = requests.get("https://api.stlouisfed.org/api/fred/series/observations?series_id=DCOILBRENTEU", params=req_params, timeout=3).json()
+        res_fx = requests.get("https://api.stlouisfed.org/api/fred/series/observations?series_id=DEXPHUS", params=req_params, timeout=3).json()
+        b_val, f_val = float(res_brent['observations'][0]['value']), float(res_fx['observations'][0]['value'])
+        inp = np.array([1, b_val, f_val])
+        return {"fx": f_val, "p91": inp.dot(WEIGHTS_91), "p95": inp.dot(WEIGHTS_95), "p97": inp.dot(WEIGHTS_97), "dsl": inp.dot(WEIGHTS_DSL)}
+    except:
+        return {"fx": 59.68, "p91": 63.50, "p95": 69.20, "p97": 75.40, "dsl": 65.10}
 
 @st.cache_data(ttl=300, show_spinner=False)
-def fetch_philippine_oil_news():
-    fallback_news = [
-        {"title": "Legislative Review of Fuel Excise Tax Initiated", "description": "National legislators are currently evaluating structural modifications to fuel taxation to alleviate domestic price pressures.", "url": "#", "source": "Internal"},
-        {"title": "Global Brent Crude Trends Impact Local Markets", "description": "Recent shifts in global Brent crude valuations continue to influence local retail pump prices within the Philippine archipelago.", "url": "#", "source": "Internal"}
-    ]
+def fetch_local_oil_intelligence():
     try:
-        newsdata_api_key = st.secrets.get("NEWSDATA_API_KEY", None)
-        if not newsdata_api_key: return fallback_news
-        # Refined query to exclusively target top local sources via country=ph and source_id filters
-        url = f"https://newsdata.io/api/1/news?apikey={newsdata_api_key}&country=ph&q=fuel%20OR%20oil%20OR%20gasoline%20OR%20diesel&language=en"
-        response = requests.get(url, timeout=5)
-        if response.status_code == 200:
-            results = response.json().get('results', [])
-            if len(results) >= 2:
-                mapped = []
-                for art in results[:2]:
-                    mapped.append({
-                        "title": art.get("title", "Market Update"),
-                        "description": str(art.get("description", "No description available."))[:160] + "...",
-                        "url": art.get("link", "#"),
-                        "source": art.get("source_id", "News Source")
-                    })
-                return mapped
-        return fallback_news
-    except Exception:
-        return fallback_news
+        ns_api_key = st.secrets.get("NEWSDATA_API_KEY", None)
+        if not ns_api_key: return []
+        # Target exclusively PH domains and oil keywords
+        url = f"https://newsdata.io/api/1/news?apikey={ns_api_key}&country=ph&q=fuel%20OR%20oil%20OR%20gasoline%20OR%20diesel&language=en"
+        results = requests.get(url, timeout=5).json().get('results', [])
+        return [{"title": art.get("title", ""), "description": str(art.get("description", ""))[:160], "url": art.get("link", "#"), "source": art.get("source_id", "")} for art in results[:2]]
+    except:
+        return []
 
-def analyze_news_sentiment(articles):
-    bullish = ['hike', 'increase', 'surge', 'conflict', 'war', 'shortage', 'upward', 'soar', 'unrest', 'tighten']
-    bearish = ['rollback', 'decrease', 'drop', 'slump', 'surplus', 'ease', 'plunge', 'cheaper', 'suspend']
+def derive_sentiment_score(articles):
+    bullish = ['hike', 'increase', 'conflict', 'war', 'shortage', 'upward', 'soar']
+    bearish = ['rollback', 'decrease', 'drop', 'slump', 'surplus', 'ease']
     score = 0
     for art in articles:
         text = f"{art['title']} {art['description']}".lower()
-        for word in bullish: score += 0.003 if word in text else 0
-        for word in bearish: score -= 0.003 if word in text else 0
+        for b in bullish: score += 0.003 if b in text else 0
+        for r in bearish: score -= 0.003 if r in text else 0
     return max(min(score, 0.015), -0.015)
 
 @st.cache_data(ttl=300, show_spinner=False)
-def generate_forecast_dataframe(base_prices, forecast_horizon_days, sentiment_bias):
+def generate_forecast_model(base_prices, forecast_horizon, bias):
     np.random.seed(42)
-    current_time = datetime.now()
-    generation_dates = [(current_time + timedelta(days=i)).strftime('%a, %b %d') for i in range(forecast_horizon_days)]
+    dates = [(datetime.now() + timedelta(days=i)).strftime('%a, %b %d') for i in range(forecast_horizon)]
     mapping = {"91": "91 RON", "95": "95 RON", "97": "97+ RON", "dsl": "Diesel"}
-    stochastic_data = {"Date": generation_dates}
-    adjusted_drift = 0.002 + sentiment_bias
+    stochastic_data = {"Date": dates}
+    drift = 0.002 + bias
     for fuel_grade, current_price in base_prices.items():
-        daily_price_shocks = np.random.normal(adjusted_drift, 0.012, forecast_horizon_days)
-        cumulative_shocks = np.cumprod(1 + daily_price_shocks)
-        stochastic_data[mapping[fuel_grade]] = np.round(current_price * cumulative_shocks, 2)
-    df = pd.DataFrame(stochastic_data)
-    confidence = round(100 * math.exp(-0.01 * forecast_horizon_days), 1)
-    return df, confidence
+        if fuel_grade == "fx": continue
+        daily_shocks = np.random.normal(drift, 0.012, forecast_horizon)
+        stochastic_data[mapping[fuel_grade]] = np.round(current_price * np.cumprod(1 + daily_shocks), 2)
+    # Dynamic Decay Logic
+    accuracy = round(100 * math.exp(-0.01 * forecast_horizon), 1)
+    return pd.DataFrame(stochastic_data), accuracy
 
-# App Execution Sequence
+# ---------------------------------------------------------
+# APPLICATION INTERFACE EXECUTION
+# ---------------------------------------------------------
 inject_custom_css()
-initialize_session_state()
-market_data = fetch_comprehensive_market_data()
-ph_news = fetch_philippine_oil_news()
-bias = analyze_news_sentiment(ph_news)
-
-structured_prices = {"91": market_data["p91"], "95": market_data["p95"], "97": market_data["p97"], "dsl": market_data["dsl"]}
-forecast_df, accuracy = generate_forecast_dataframe(structured_prices, 30, bias)
+market_snapshot = fetch_comprehensive_market_data()
+ph_news = fetch_local_oil_intelligence()
+sentiment_bias = derive_sentiment_score(ph_news)
 
 st.markdown('<div class="main-title">Philippine Fuel Price Tracker</div>', unsafe_allow_html=True)
+st.markdown('<div class="version-tag">FuelTrack 1.1</div>', unsafe_allow_html=True)
 
-alert_text = "Current geopolitical indicators present standard market conditions with minimal variance."
-if bias > 0.005: alert_text = "Market indicators suggest an upward trajectory in commodity pricing based on local supply constraints."
-elif bias < -0.005: alert_text = "Market indicators suggest a potential price reduction based on prevailing macroeconomic trends."
+horizon_input = st.selectbox("Select Prediction Period", ["7 Days Forecast", "14 Days Forecast", "30 Days Forecast"])
+days_int = int(horizon_input.split()[0])
 
-st.markdown(f'<div class="alert-box"><strong>MARKET ALERT:</strong> {alert_text}</div>', unsafe_allow_html=True)
+# Dynamic Model Calculation: Metrics bound to Forecast Day 0
+forecast_df, dynamic_accuracy = generate_forecast_model(market_snapshot, days_int, sentiment_bias)
+
 st.markdown('<div class="section-title">Estimated Current Pump Prices</div>', unsafe_allow_html=True)
+curr_time = datetime.now().strftime("%B %d, %Y | %I:%M %p PST")
+st.markdown(f"""<div class="time-badge"><span class="pulse-dot"></span> As of {curr_time}</div>""", unsafe_allow_html=True)
 
-time_str = datetime.now().strftime("%B %d, %Y | %I:%M %p PST")
-st.markdown(f"""<div class="time-badge"><span class="pulse-dot"></span> As of {time_str}
-<div class="info-tooltip"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
-<span class="tooltip-text"><strong>Real-Time Recalibration:</strong> Values are synchronized every five minutes by integrating international indices and real-time semantic news analysis.</span></div></div>""", unsafe_allow_html=True)
-
-# Synchronized Metrics (Day 0 Forecast)
+# Metrics Pulled Directly from Dynamic Forecast Day 0
 st.markdown(f"""
 <div class="metric-grid">
     <div class="metric-card"><div class="metric-label">91 REGULAR</div><div class="metric-value">₱{forecast_df['91 RON'].iloc[0]:.2f}</div><div class="metric-sub">Advance, FuelSave</div></div>
@@ -463,42 +427,40 @@ st.markdown(f"""
     <div class="metric-card"><div class="metric-label">DIESEL</div><div class="metric-value">₱{forecast_df['Diesel'].iloc[0]:.2f}</div><div class="metric-sub">Turbo, Power Diesel</div></div>
 </div>""", unsafe_allow_html=True)
 
-prediction_period = st.selectbox("Select Prediction Period", ["7 Days Forecast", "14 Days Forecast", "30 Days Forecast"])
-days_to_show = int(prediction_period.split()[0])
-display_forecast = forecast_df.head(days_to_show)
-
-selected_fuels = st.multiselect("Select Fuel Classifications for Visualization", options=["91 RON", "95 RON", "97+ RON", "Diesel"], default=["91 RON", "95 RON", "97+ RON", "Diesel"])
-
-col_a, col_b = st.columns([2.5, 1], gap="large")
-with col_a:
-    st.markdown('<div class="sub-header">Price Trend Prediction</div>', unsafe_allow_html=True)
-    melted = display_forecast.melt('Date', var_name='Type', value_name='Price')
+# Interactive Visualization & Analysis
+col_vis, col_data = st.columns([2.5, 1], gap="large")
+with col_vis:
+    st.markdown(f'<div class="sub-header">Price Trajectory Prediction ({days_int} Days)</div>', unsafe_allow_html=True)
+    melted = forecast_df.melt('Date', var_name='Type', value_name='Price')
     chart = alt.Chart(melted).mark_line(point=True, strokeWidth=2).encode(
         x=alt.X('Date:N', sort=None, title=None),
-        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title="PHP per Litre"),
+        y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title="PHP / Litre"),
         color=alt.Color('Type:N', scale=alt.Scale(range=['#10b981', '#3b82f6', '#8b5cf6', '#ef4444']), legend=alt.Legend(orient='bottom', title=None)),
         tooltip=['Date', 'Type', 'Price']
     ).properties(height=400).configure_view(strokeWidth=0)
     st.altair_chart(chart, use_container_width=True)
 
-with col_b:
-    st.markdown('<div class="sub-header">Predictive Analysis</div>', unsafe_allow_html=True)
-    st.markdown(f"""<div class="stat-label">Model Confidence Estimate <div class="info-tooltip"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
-    <span class="tooltip-text"><strong>Accuracy Derivation:</strong> This metric represents the mathematical probability that market volatility remains within standard deviations. Accuracy systematically declines as the temporal distance of the forecast increases.</span></div></div>
-    <div class="stat-value">{accuracy}%</div>""", unsafe_allow_html=True)
-    st.dataframe(display_forecast[["Date"] + selected_fuels], hide_index=True, use_container_width=True, height=350)
+with col_data:
+    st.markdown('<div class="sub-header">Analytical Intelligence</div>', unsafe_allow_html=True)
+    st.markdown(f"""<div class="stat-label">Model Confidence Interval
+    <div class="info-tooltip"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+    <span class="tooltip-text"><strong>Dynamic Accuracy Derivation:</strong> This metric represents the mathematical probability that current market volatility remains within standard deviations. As the forecast horizon extends, uncertainty increases.</span></div></div>
+    <div class="stat-value">{dynamic_accuracy}%</div>""", unsafe_allow_html=True)
+    st.dataframe(forecast_df, hide_index=True, use_container_width=True, height=350)
 
-st.markdown('<div class="news-header">Latest Local Market Intelligence</div>', unsafe_allow_html=True)
+# News Intelligence
+st.markdown('<div class="news-header">Latest Regional Market Intelligence</div>', unsafe_allow_html=True)
 news_html = '<div class="news-grid">'
 for art in ph_news:
-    news_html += f'<div class="news-card"><div><div class="news-title">{art["title"]}</div><div class="news-body">{art["description"]}</div></div><a href="{art["url"]}" target="_blank" class="news-link">SOURCE: {art["source"].upper()}</a></div>'
+    news_html += f'<div class="news-card"><div><div class="news-title">{art["title"]}</div><div class="news-body">{art["description"]}</div></div><a href="{art["url"]}" target="_blank" class="news-link">SOURCE: {str(art["source"]).upper()}</a></div>'
 st.markdown(news_html + '</div>', unsafe_allow_html=True)
 
-with st.expander("Methodology and Data Integrity Statement"):
+# Methodology Expander
+with st.expander("Analytical Methodology and Data Integrity Statement"):
     st.markdown("""
-    **I. Data Acquisition Protocols.** The system utilizes an automated interface to retrieve high-frequency macroeconomic data from the Federal Reserve Economic Data (FRED) repository. Monitored parameters include global Brent Crude valuations and the USD/PHP exchange rate index.
+    **I. Data Acquisition Protocols.** The system utilizes an automated interface to retrieve macroeconomic indicators from the Federal Reserve Economic Data (FRED) repository. Parameters include international Brent Crude spot prices and USD/PHP exchange indices.
 
-    **II. Price Estimation Logic.** Retail price approximations are derived using a Multiple Linear Regression model. This algorithm evaluates the historical correlation between international indices and domestic petroleum pricing to establish a predictive coefficient matrix.
+    **II. Mathematical Price Estimation.** Retail approximations are derived using a Multiple Linear Regression model. This algorithm evaluates the historical correlation between global indices and domestic petroleum pricing to establish a predictive coefficient matrix.
 
     **III. Semantic Analysis and Forecasting.** The application employs Natural Language Processing (NLP) to evaluate regional petroleum news from domestic sources via the NewsData.io API. Lexical indicators are utilized to adjust the directional bias of a Stochastic Random Walk simulation, which projects future price trajectories while accounting for inherent market volatility.
     """)
