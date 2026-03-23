@@ -7,7 +7,7 @@ import numpy as np
 import math
 
 st.set_page_config(
-    page_title="PH Fuel — Market Desk",
+    page_title="Fuel Prices PH",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -15,24 +15,37 @@ st.set_page_config(
 def inject_custom_css():
     st.markdown("""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
         :root {
-            --ink:     #0d0d0b;
-            --paper:   #f5f1ea;
-            --rule:    #d4cfc6;
-            --accent:  #c8450a;
-            --accent2: #1a3a6b;
-            --muted:   #8a8580;
-            --card:    #ede9e1;
+            --bg:           #f2f2f7;
+            --surface:      #ffffff;
+            --surface2:     #f2f2f7;
+            --separator:    rgba(60,60,67,0.12);
+            --label:        #000000;
+            --label2:       rgba(60,60,67,0.6);
+            --label3:       rgba(60,60,67,0.3);
+            --blue:         #007aff;
+            --green:        #34c759;
+            --red:          #ff3b30;
+            --orange:       #ff9500;
+            --purple:       #af52de;
+            --teal:         #5ac8fa;
+            --radius-sm:    10px;
+            --radius-md:    14px;
+            --radius-lg:    20px;
+            --shadow:       0 2px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-sm:    0 1px 4px rgba(0,0,0,0.06);
         }
 
-        *, *::before, *::after { box-sizing: border-box; }
+        *, *::before, *::after {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            box-sizing: border-box;
+        }
 
-        body, .stApp {
-            background-color: var(--paper);
-            color: var(--ink);
-            font-family: 'IBM Plex Sans', sans-serif !important;
+        .stApp {
+            background-color: var(--bg);
+            color: var(--label);
         }
 
         [data-testid="stHeader"] { display: none; }
@@ -40,476 +53,433 @@ def inject_custom_css():
         footer { visibility: hidden; }
 
         .block-container {
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            max-width: 100% !important;
+            padding-top: 48px !important;
+            padding-bottom: 64px !important;
+            padding-left: 6% !important;
+            padding-right: 6% !important;
+            max-width: 1200px !important;
+            margin: 0 auto;
         }
 
-        /* ─── MASTHEAD ─────────────────────────────────────── */
-        .masthead {
-            background: var(--ink);
-            color: #f5f1ea;
-            padding: 0 40px;
-            display: flex;
-            align-items: stretch;
-            justify-content: space-between;
-            border-bottom: 3px solid var(--accent);
-        }
-
-        .masthead-left {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 18px 0;
-            border-right: 1px solid rgba(245,241,234,0.15);
-            padding-right: 32px;
-            margin-right: 32px;
-        }
-
-        .masthead-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.6rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            line-height: 1;
-            color: #f5f1ea;
-            margin: 0;
-        }
-
-        .masthead-sub {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            font-weight: 300;
-            letter-spacing: 0.15em;
+        /* ── Page Title ───────────────────────────────────── */
+        .page-eyebrow {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            color: rgba(245,241,234,0.5);
-            margin-top: 5px;
+            color: var(--blue);
+            margin-bottom: 6px;
         }
 
-        .masthead-right {
+        .page-title {
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: -0.8px;
+            color: var(--label);
+            line-height: 1.1;
+            margin: 0 0 6px;
+        }
+
+        .page-subtitle {
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--label2);
+            margin-bottom: 28px;
+            line-height: 1.4;
+        }
+
+        /* ── Live Badge ───────────────────────────────────── */
+        .badge-row {
             display: flex;
             align-items: center;
-            gap: 32px;
+            gap: 10px;
+            margin-bottom: 36px;
         }
 
-        .masthead-stat {
-            text-align: right;
-            padding: 14px 0;
-        }
-
-        .masthead-stat-label {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.58rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: rgba(245,241,234,0.45);
-            margin-bottom: 3px;
-        }
-
-        .masthead-stat-value {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #f5f1ea;
-        }
-
-        .live-pill {
+        .live-badge {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            background: var(--accent);
-            color: #fff;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            font-weight: 500;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            padding: 6px 14px;
-            border-radius: 2px;
+            gap: 6px;
+            background: rgba(52,199,89,0.12);
+            color: #248a3d;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 100px;
         }
 
         .live-dot {
             width: 6px; height: 6px;
-            background: #fff;
+            background: var(--green);
             border-radius: 50%;
-            animation: blink 2s infinite;
+            animation: pulse 2.4s ease-in-out infinite;
         }
 
-        @keyframes blink {
-            0%,100% { opacity: 1; }
-            50%      { opacity: 0.3; }
+        @keyframes pulse {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: 0.5; transform: scale(0.85); }
         }
 
-        /* ─── LAYOUT WRAPPER ───────────────────────────────── */
-        .layout-wrapper {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            min-height: calc(100vh - 78px);
-        }
-
-        /* ─── LEFT SIDEBAR ─────────────────────────────────── */
-        .sidebar {
-            background: var(--ink);
-            color: var(--paper);
-            padding: 28px 24px 32px;
-            border-right: 1px solid #222;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .sidebar-section-label {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.58rem;
+        .timestamp-badge {
+            font-size: 12px;
             font-weight: 400;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: rgba(245,241,234,0.35);
-            margin-bottom: 16px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(245,241,234,0.08);
+            color: var(--label3);
         }
 
-        .price-tile {
-            padding: 16px 0;
-            border-bottom: 1px solid rgba(245,241,234,0.08);
-            cursor: default;
-            transition: background 0.15s;
-        }
-
-        .price-tile:last-of-type {
-            border-bottom: none;
-        }
-
-        .price-tile-header {
+        /* ── Alert Card ───────────────────────────────────── */
+        .alert-card {
+            background: rgba(255,149,0,0.1);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
             display: flex;
-            justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 8px;
+            gap: 12px;
+            margin-bottom: 32px;
         }
 
-        .price-tile-grade {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: rgba(245,241,234,0.6);
-        }
-
-        .price-tile-badge {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.58rem;
-            font-weight: 400;
-            padding: 2px 7px;
-            border-radius: 2px;
-            letter-spacing: 0.06em;
-        }
-
-        .badge-91  { background: rgba(22,163,74,0.18); color: #4ade80; }
-        .badge-95  { background: rgba(37,99,235,0.18); color: #60a5fa; }
-        .badge-97  { background: rgba(124,58,237,0.18); color: #c084fc; }
-        .badge-dsl { background: rgba(220,38,38,0.18); color: #f87171; }
-
-        .price-tile-value {
-            font-family: 'DM Mono', monospace;
-            font-size: 2rem;
-            font-weight: 500;
-            color: #f5f1ea;
-            letter-spacing: -0.5px;
+        .alert-icon {
+            font-size: 17px;
             line-height: 1;
+            margin-top: 1px;
+            flex-shrink: 0;
         }
 
-        .price-tile-peso {
-            font-size: 1rem;
-            font-weight: 300;
-            color: rgba(245,241,234,0.4);
-            margin-right: 2px;
+        .alert-text {
+            font-size: 14px;
+            font-weight: 400;
+            color: #7d4a00;
+            line-height: 1.5;
         }
 
-        .price-tile-brands {
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 0.65rem;
-            color: rgba(245,241,234,0.3);
-            margin-top: 6px;
-            font-weight: 300;
+        .alert-text strong {
+            font-weight: 600;
+            color: #7d4a00;
         }
 
-        /* ─── SIDEBAR STATS ────────────────────────────────── */
-        .sidebar-divider {
-            border: none;
-            border-top: 1px solid rgba(245,241,234,0.08);
-            margin: 20px 0;
+        /* ── Section Header ───────────────────────────────── */
+        .section-header {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+            color: var(--label);
+            margin: 0 0 16px;
         }
 
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            padding: 6px 0;
+        /* ── Price Cards ──────────────────────────────────── */
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
         }
 
-        .stat-key {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            letter-spacing: 0.08em;
-            color: rgba(245,241,234,0.35);
-            text-transform: uppercase;
-        }
-
-        .stat-val {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: rgba(245,241,234,0.75);
-        }
-
-        .sentiment-bull { color: #4ade80 !important; }
-        .sentiment-bear { color: #f87171 !important; }
-        .sentiment-neut { color: rgba(245,241,234,0.5) !important; }
-
-        .confidence-bar {
-            height: 3px;
-            background: rgba(245,241,234,0.1);
-            border-radius: 2px;
-            margin-top: 10px;
-            margin-bottom: 6px;
+        .price-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 22px 20px 18px;
+            box-shadow: var(--shadow);
+            position: relative;
             overflow: hidden;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
         }
 
-        .confidence-fill {
-            height: 100%;
-            background: var(--accent);
-            border-radius: 2px;
+        .price-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.06);
         }
 
-        /* ─── MAIN CONTENT ─────────────────────────────────── */
-        .main-content {
-            padding: 32px 36px 48px;
-            overflow-y: auto;
-            background: var(--paper);
+        .price-card-accent {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
         }
 
-        /* ─── ALERT BAND ───────────────────────────────────── */
-        .alert-band {
+        .accent-green  { background: var(--green); }
+        .accent-blue   { background: var(--blue); }
+        .accent-purple { background: var(--purple); }
+        .accent-orange { background: var(--orange); }
+
+        .price-card-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--label3);
+            margin-bottom: 10px;
+        }
+
+        .price-card-value {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1;
+            color: var(--label);
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 4px;
+        }
+
+        .price-card-currency {
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--label2);
+            letter-spacing: 0;
+            margin-right: 1px;
+        }
+
+        .price-card-brands {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--label3);
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        .price-card-pill {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            padding: 3px 9px;
+            border-radius: 100px;
+            position: absolute;
+            top: 18px;
+            right: 16px;
+        }
+
+        .pill-green  { background: rgba(52,199,89,0.12);  color: #248a3d; }
+        .pill-blue   { background: rgba(0,122,255,0.1);   color: #0055cc; }
+        .pill-purple { background: rgba(175,82,222,0.1);  color: #8944ab; }
+        .pill-orange { background: rgba(255,149,0,0.12);  color: #c87000; }
+
+        /* ── Grouped Table Card ───────────────────────────── */
+        .grouped-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+
+        .grouped-card-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 11px 18px;
-            background: #fef3c7;
-            border-left: 3px solid #d97706;
-            margin-bottom: 28px;
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 0.78rem;
-            font-weight: 400;
-            color: #78350f;
+            justify-content: space-between;
+            padding: 18px 22px 14px;
+            border-bottom: 1px solid var(--separator);
         }
 
-        .alert-band strong {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.65rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            font-weight: 500;
-        }
-
-        /* ─── SECTION HEADING ──────────────────────────────── */
-        .section-heading {
-            display: flex;
-            align-items: baseline;
-            gap: 12px;
-            margin-bottom: 18px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--ink);
-        }
-
-        .section-num {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            color: var(--accent);
-            font-weight: 400;
-            letter-spacing: 0.08em;
-        }
-
-        .section-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--ink);
+        .grouped-card-title {
+            font-size: 17px;
+            font-weight: 600;
             letter-spacing: -0.3px;
+            color: var(--label);
         }
 
-        .section-meta {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            color: var(--muted);
-            margin-left: auto;
-            letter-spacing: 0.06em;
+        .grouped-card-meta {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--label3);
         }
 
-        /* ─── CONTROLS STRIP ───────────────────────────────── */
-        .controls-strip {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
+        .grouped-card-body {
+            padding: 4px 0 4px;
         }
 
-        /* Streamlit widget label overrides */
+        /* ── Select overrides ─────────────────────────────── */
         [data-testid="stSelectbox"] label,
         [data-testid="stMultiSelect"] label {
-            font-family: 'DM Mono', monospace !important;
-            font-size: 0.6rem !important;
-            font-weight: 500 !important;
-            letter-spacing: 0.12em !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.04em !important;
             text-transform: uppercase !important;
-            color: var(--muted) !important;
+            color: var(--label3) !important;
+            margin-bottom: 4px !important;
         }
 
         [data-testid="stSelectbox"] > div > div,
         [data-testid="stMultiSelect"] > div > div {
-            background: #fff !important;
-            border: 1px solid var(--rule) !important;
-            border-radius: 2px !important;
-            font-family: 'IBM Plex Sans', sans-serif !important;
-            font-size: 0.82rem !important;
-            color: var(--ink) !important;
+            background: var(--surface) !important;
+            border: 1px solid var(--separator) !important;
+            border-radius: var(--radius-sm) !important;
+            font-size: 15px !important;
+            color: var(--label) !important;
+            box-shadow: var(--shadow-sm) !important;
         }
 
-        /* ─── CHART AREA ───────────────────────────────────── */
-        .chart-container {
-            background: #fff;
-            border: 1px solid var(--rule);
-            border-top: 3px solid var(--ink);
-            padding: 20px 16px 8px;
-            margin-bottom: 36px;
+        /* ── Stat row ─────────────────────────────────────── */
+        .stat-inline-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
         }
 
-        /* ─── NEWS ─────────────────────────────────────────── */
-        .news-columns {
+        .stat-inline-chip {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            padding: 14px 18px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .stat-inline-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--label3);
+            margin-bottom: 6px;
+        }
+
+        .stat-inline-value {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--label);
+            line-height: 1;
+        }
+
+        .stat-inline-sub {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--label3);
+            margin-top: 4px;
+        }
+
+        .confidence-track {
+            height: 4px;
+            background: var(--separator);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .confidence-thumb {
+            height: 100%;
+            border-radius: 2px;
+            background: var(--green);
+        }
+
+        /* ── News Cards ───────────────────────────────────── */
+        .news-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0;
-            border-top: 2px solid var(--ink);
-            border-left: 1px solid var(--rule);
-            margin-bottom: 40px;
+            gap: 12px;
+            margin-bottom: 32px;
         }
 
-        .news-col {
-            padding: 22px 24px;
-            border-right: 1px solid var(--rule);
-            border-bottom: 1px solid var(--rule);
+        .news-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.18s ease;
         }
 
-        .news-col-index {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.58rem;
-            letter-spacing: 0.12em;
+        .news-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .news-source-tag {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: 8px;
-            font-weight: 400;
+            color: var(--blue);
         }
 
-        .news-col-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.0rem;
-            font-weight: 700;
-            color: var(--ink);
+        .news-title {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            color: var(--label);
             line-height: 1.35;
-            margin-bottom: 12px;
         }
 
-        .news-col-body {
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 0.8rem;
-            color: var(--muted);
-            line-height: 1.65;
-            font-weight: 300;
-            margin-bottom: 18px;
+        .news-body {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--label2);
+            line-height: 1.55;
+            flex: 1;
         }
 
-        .news-col-link {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.65rem;
-            color: var(--accent2);
+        .news-link {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--blue);
             text-decoration: none;
-            letter-spacing: 0.07em;
-            text-transform: uppercase;
-            border-bottom: 1px solid currentColor;
-            padding-bottom: 2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        /* ─── EXPANDERS ────────────────────────────────────── */
+        /* ── Expanders ────────────────────────────────────── */
         [data-testid="stExpander"] {
-            background: #fff !important;
-            border: 1px solid var(--rule) !important;
-            border-left: 3px solid var(--ink) !important;
-            border-radius: 0 !important;
-            margin-bottom: 8px;
+            background: var(--surface) !important;
+            border: none !important;
+            border-radius: var(--radius-md) !important;
+            box-shadow: var(--shadow-sm) !important;
+            margin-bottom: 10px;
         }
 
         [data-testid="stExpander"] summary {
-            font-family: 'Syne', sans-serif !important;
-            font-size: 0.85rem !important;
-            font-weight: 700 !important;
-            color: var(--ink) !important;
-            padding: 14px 18px !important;
-            letter-spacing: -0.2px;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            letter-spacing: -0.2px !important;
+            color: var(--label) !important;
+            padding: 16px 20px !important;
         }
 
         [data-testid="stExpanderDetails"] {
-            font-family: 'IBM Plex Sans', sans-serif !important;
-            font-size: 0.82rem !important;
-            font-weight: 300 !important;
-            color: #444 !important;
-            line-height: 1.75 !important;
-            padding: 0 18px 16px !important;
+            font-size: 14px !important;
+            font-weight: 400 !important;
+            color: var(--label2) !important;
+            line-height: 1.65 !important;
+            padding: 0 20px 18px !important;
         }
 
-        /* ─── DATAFRAME ────────────────────────────────────── */
+        /* ── Dataframe ────────────────────────────────────── */
         [data-testid="stDataFrame"] {
-            border: 1px solid var(--rule);
-            border-radius: 0;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
         }
 
-        /* ─── FOOTER ───────────────────────────────────────── */
+        /* ── Footer ───────────────────────────────────────── */
         .page-footer {
-            text-align: left;
-            margin-top: 32px;
-            padding-top: 16px;
-            border-top: 2px solid var(--ink);
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            color: var(--muted);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+            text-align: center;
+            margin-top: 48px;
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--label3);
+            line-height: 1.8;
         }
 
-        /* ─── RESPONSIVE ───────────────────────────────────── */
-        @media (max-width: 900px) {
-            .layout-wrapper { grid-template-columns: 1fr; }
-            .sidebar { border-right: none; border-bottom: 2px solid var(--accent); }
-            .masthead { padding: 0 18px; flex-wrap: wrap; gap: 10px; }
-            .masthead-right { flex-wrap: wrap; gap: 14px; }
-            .news-columns { grid-template-columns: 1fr; }
-            .main-content { padding: 20px 18px 36px; }
+        /* ── Responsive ───────────────────────────────────── */
+        @media (max-width: 820px) {
+            .block-container { padding-left: 1.2rem !important; padding-right: 1.2rem !important; }
+            .price-grid { grid-template-columns: repeat(2, 1fr); }
+            .news-grid  { grid-template-columns: 1fr; }
+            .page-title { font-size: 28px; }
+            .price-card-value { font-size: 28px; }
+            .stat-inline-row { gap: 8px; }
         }
         </style>
     """, unsafe_allow_html=True)
 
 
 # ─── Model ───────────────────────────────────────────────────────────────────
-
 HISTORICAL_FEATURES = np.array([[1,74.2,55.8],[1,78.5,56.1],[1,80.2,56.5],[1,82.5,57.0]])
 INV_MATRIX   = np.linalg.inv(HISTORICAL_FEATURES.T.dot(HISTORICAL_FEATURES)).dot(HISTORICAL_FEATURES.T)
 WEIGHTS_91   = INV_MATRIX.dot(np.array([50.50,52.10,57.30,59.10]))
 WEIGHTS_95   = INV_MATRIX.dot(np.array([54.20,56.90,62.10,63.90]))
 WEIGHTS_97   = INV_MATRIX.dot(np.array([58.10,60.40,65.60,67.40]))
 WEIGHTS_DSL  = INV_MATRIX.dot(np.array([58.00,60.50,72.10,75.90]))
-
 
 def initialize_session_state():
     if 'last_market_data' not in st.session_state:
@@ -518,11 +488,9 @@ def initialize_session_state():
             "timestamp": datetime.now().strftime("%I:%M:%S %p")
         }
 
-
 def compute_linear_regression(brent, fx):
     v = np.array([1, brent, fx])
     return {"p91":v.dot(WEIGHTS_91),"p95":v.dot(WEIGHTS_95),"p97":v.dot(WEIGHTS_97),"dsl":v.dot(WEIGHTS_DSL)}
-
 
 @st.cache_data(ttl=300, show_spinner=False)
 def fetch_comprehensive_market_data():
@@ -543,7 +511,6 @@ def fetch_comprehensive_market_data():
         return st.session_state.last_market_data
     except:
         return st.session_state.last_market_data
-
 
 @st.cache_data(ttl=300, show_spinner=False)
 def fetch_philippine_oil_news():
@@ -572,7 +539,6 @@ def fetch_philippine_oil_news():
     except:
         return fallback
 
-
 def analyze_news_sentiment(articles):
     bullish=['hike','increase','surge','conflict','war','shortage','upward','soar','unrest','tighten']
     bearish=['rollback','decrease','drop','slump','surplus','ease','plunge','cheaper','suspend']
@@ -582,7 +548,6 @@ def analyze_news_sentiment(articles):
         for w in bullish: score+=0.003 if w in text else 0
         for w in bearish: score-=0.003 if w in text else 0
     return max(min(score,0.015),-0.015)
-
 
 @st.cache_data(ttl=300, show_spinner=False)
 def generate_forecast_dataframe(base_prices, days, bias):
@@ -605,7 +570,6 @@ def generate_forecast_dataframe(base_prices, days, bias):
 
 
 # ─── App ─────────────────────────────────────────────────────────────────────
-
 inject_custom_css()
 initialize_session_state()
 
@@ -614,13 +578,42 @@ ph_news     = fetch_philippine_oil_news()
 bias        = analyze_news_sentiment(ph_news)
 base_prices = {"91":market_data["p91"],"95":market_data["p95"],"97":market_data["p97"],"dsl":market_data["dsl"]}
 
-# ── Controls (need before layout) ────────────────────────────────────────────
-prediction_period = st.selectbox(
-    "Prediction Horizon",
-    ["7 Days Forecast","14 Days Forecast","30 Days Forecast"],
-    label_visibility="collapsed"
-)
-days_forecast = int(prediction_period.split()[0])
+# ── Title ─────────────────────────────────────────────────────────────────────
+time_str = datetime.now().strftime("%B %d, %Y · %I:%M %p")
+
+st.markdown(f"""
+<div class="page-eyebrow">Philippines</div>
+<div class="page-title">Fuel Prices</div>
+<div class="page-subtitle">Estimated pump prices based on live Brent Crude &amp; USD/PHP rates.</div>
+<div class="badge-row">
+    <div class="live-badge"><span class="live-dot"></span>Live</div>
+    <span class="timestamp-badge">{time_str}</span>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Alert ─────────────────────────────────────────────────────────────────────
+if bias > 0.005:
+    alert_msg = "<strong>Price increase likely.</strong> Supply-side signals suggest an upward adjustment this cycle."
+    alert_icon = "↑"
+elif bias < -0.005:
+    alert_msg = "<strong>Rollback possible.</strong> Market signals point toward a potential price reduction."
+    alert_icon = "↓"
+else:
+    alert_msg = "<strong>Stable outlook.</strong> Current indices are within normal variance. No significant movement forecast."
+    alert_icon = "◎"
+
+st.markdown(f"""
+<div class="alert-card">
+    <span class="alert-icon">{alert_icon}</span>
+    <span class="alert-text">{alert_msg}</span>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Controls ──────────────────────────────────────────────────────────────────
+c1, c2 = st.columns([1, 2.4])
+with c1:
+    prediction_period = st.selectbox("Horizon", ["7 Days Forecast","14 Days Forecast","30 Days Forecast"])
+    days_forecast = int(prediction_period.split()[0])
 
 all_fuel_types = [
     "91 RON (Xtra Advance / FuelSave / Silver)",
@@ -628,13 +621,8 @@ all_fuel_types = [
     "97+ RON (Blaze 100 / Racing)",
     "Diesel (Turbo / Max / Power)"
 ]
-
-selected_fuels = st.multiselect(
-    "Fuel Types",
-    options=all_fuel_types,
-    default=all_fuel_types,
-    label_visibility="collapsed"
-)
+with c2:
+    selected_fuels = st.multiselect("Fuel Types", options=all_fuel_types, default=all_fuel_types)
 
 forecast_df, dynamic_accuracy = generate_forecast_dataframe(base_prices, days_forecast, bias)
 
@@ -643,174 +631,47 @@ p95  = forecast_df['95 RON (XCS / V-Power / Platinum)'].iloc[0]
 p97  = forecast_df['97+ RON (Blaze 100 / Racing)'].iloc[0]
 pdsl = forecast_df['Diesel (Turbo / Max / Power)'].iloc[0]
 
-time_str = datetime.now().strftime("%d %b %Y · %H:%M")
+# ── Price Cards ───────────────────────────────────────────────────────────────
+st.markdown('<div class="section-header" style="margin-top:12px;">Today\'s Prices</div>', unsafe_allow_html=True)
 
-if bias > 0.003:
-    sentiment_label = "BULLISH"
-    sentiment_class = "sentiment-bull"
-elif bias < -0.003:
-    sentiment_label = "BEARISH"
-    sentiment_class = "sentiment-bear"
-else:
-    sentiment_label = "NEUTRAL"
-    sentiment_class = "sentiment-neut"
-
-# ── Alert logic ───────────────────────────────────────────────────────────────
-if bias > 0.005:
-    alert_msg = "Supply-side pressures detected — model indicates an upward price correction is probable."
-elif bias < -0.005:
-    alert_msg = "Demand softness detected — model indicates a potential price rollback this cycle."
-else:
-    alert_msg = "Indices are within standard deviation. No significant price movement forecast."
-
-# ─── MASTHEAD ────────────────────────────────────────────────────────────────
 st.markdown(f"""
-<div class="masthead">
-    <div class="masthead-left">
-        <div class="masthead-title">PH Fuel Market Desk</div>
-        <div class="masthead-sub">Philippine Energy Price Intelligence</div>
+<div class="price-grid">
+    <div class="price-card">
+        <div class="price-card-accent accent-green"></div>
+        <div class="price-card-pill pill-green">RON 91</div>
+        <div class="price-card-label">91 Regular</div>
+        <div class="price-card-value"><span class="price-card-currency">₱</span>{p91:.2f}</div>
+        <div class="price-card-brands">Xtra Advance · FuelSave · Silver</div>
     </div>
-    <div class="masthead-right">
-        <div class="masthead-stat">
-            <div class="masthead-stat-label">Brent Crude</div>
-            <div class="masthead-stat-value">USD/BBL Index</div>
-        </div>
-        <div class="masthead-stat">
-            <div class="masthead-stat-label">USD / PHP</div>
-            <div class="masthead-stat-value">₱ {market_data['fx']:.2f}</div>
-        </div>
-        <div class="masthead-stat">
-            <div class="masthead-stat-label">Sentiment</div>
-            <div class="masthead-stat-value {sentiment_class}">{sentiment_label}</div>
-        </div>
-        <div class="masthead-stat">
-            <div class="live-pill"><span class="live-dot"></span>Live</div>
-        </div>
+    <div class="price-card">
+        <div class="price-card-accent accent-blue"></div>
+        <div class="price-card-pill pill-blue">RON 95</div>
+        <div class="price-card-label">95 Premium</div>
+        <div class="price-card-value"><span class="price-card-currency">₱</span>{p95:.2f}</div>
+        <div class="price-card-brands">XCS · V-Power · Platinum</div>
+    </div>
+    <div class="price-card">
+        <div class="price-card-accent accent-purple"></div>
+        <div class="price-card-pill pill-purple">RON 97</div>
+        <div class="price-card-label">97+ Ultra</div>
+        <div class="price-card-value"><span class="price-card-currency">₱</span>{p97:.2f}</div>
+        <div class="price-card-brands">Blaze 100 · Extreme 97</div>
+    </div>
+    <div class="price-card">
+        <div class="price-card-accent accent-orange"></div>
+        <div class="price-card-pill pill-orange">DSL</div>
+        <div class="price-card-label">Diesel</div>
+        <div class="price-card-value"><span class="price-card-currency">₱</span>{pdsl:.2f}</div>
+        <div class="price-card-brands">Turbo · Max · Power Diesel</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ─── MAIN LAYOUT ─────────────────────────────────────────────────────────────
-st.markdown('<div class="layout-wrapper">', unsafe_allow_html=True)
+# ── Chart ─────────────────────────────────────────────────────────────────────
+st.markdown(f'<div class="section-header">{days_forecast}-Day Forecast</div>', unsafe_allow_html=True)
 
-# ── LEFT SIDEBAR HTML ─────────────────────────────────────────────────────────
-conf_bar = min(dynamic_accuracy, 100)
-st.markdown(f"""
-<div class="sidebar">
-
-    <div class="sidebar-section-label">Pump Prices — Est. Today</div>
-
-    <div class="price-tile">
-        <div class="price-tile-header">
-            <span class="price-tile-grade">91 Regular</span>
-            <span class="price-tile-badge badge-91">RON 91</span>
-        </div>
-        <div class="price-tile-value"><span class="price-tile-peso">₱</span>{p91:.2f}</div>
-        <div class="price-tile-brands">Xtra Advance · FuelSave · Silver</div>
-    </div>
-
-    <div class="price-tile">
-        <div class="price-tile-header">
-            <span class="price-tile-grade">95 Premium</span>
-            <span class="price-tile-badge badge-95">RON 95</span>
-        </div>
-        <div class="price-tile-value"><span class="price-tile-peso">₱</span>{p95:.2f}</div>
-        <div class="price-tile-brands">XCS · V-Power · Platinum</div>
-    </div>
-
-    <div class="price-tile">
-        <div class="price-tile-header">
-            <span class="price-tile-grade">97+ Ultra</span>
-            <span class="price-tile-badge badge-97">RON 97</span>
-        </div>
-        <div class="price-tile-value"><span class="price-tile-peso">₱</span>{p97:.2f}</div>
-        <div class="price-tile-brands">Blaze 100 · Seaoil 97</div>
-    </div>
-
-    <div class="price-tile">
-        <div class="price-tile-header">
-            <span class="price-tile-grade">Diesel</span>
-            <span class="price-tile-badge badge-dsl">DSL</span>
-        </div>
-        <div class="price-tile-value"><span class="price-tile-peso">₱</span>{pdsl:.2f}</div>
-        <div class="price-tile-brands">Turbo · Max · Power Diesel</div>
-    </div>
-
-    <hr class="sidebar-divider">
-
-    <div class="sidebar-section-label">Model Parameters</div>
-
-    <div class="stat-row">
-        <span class="stat-key">Horizon</span>
-        <span class="stat-val">{days_forecast}D</span>
-    </div>
-
-    <div class="stat-row">
-        <span class="stat-key">Confidence</span>
-        <span class="stat-val">{dynamic_accuracy}%</span>
-    </div>
-
-    <div class="confidence-bar">
-        <div class="confidence-fill" style="width:{conf_bar}%"></div>
-    </div>
-
-    <div class="stat-row">
-        <span class="stat-key">Signal</span>
-        <span class="stat-val {sentiment_class}">{sentiment_label}</span>
-    </div>
-
-    <div class="stat-row">
-        <span class="stat-key">Algorithm</span>
-        <span class="stat-val">MLR + RW</span>
-    </div>
-
-    <div class="stat-row">
-        <span class="stat-key">Refreshed</span>
-        <span class="stat-val">{time_str}</span>
-    </div>
-
-</div>
-""", unsafe_allow_html=True)
-
-# ── RIGHT MAIN CONTENT ────────────────────────────────────────────────────────
-st.markdown('<div class="main-content">', unsafe_allow_html=True)
-
-# Alert band
-st.markdown(f"""
-<div class="alert-band">
-    <strong>Market Signal</strong>&ensp;—&ensp;{alert_msg}
-</div>
-""", unsafe_allow_html=True)
-
-# Controls row label
-st.markdown("""
-<div class="section-heading">
-    <span class="section-num">01 —</span>
-    <span class="section-title">Configure Forecast</span>
-</div>
-""", unsafe_allow_html=True)
-
-col1, col2 = st.columns([1, 2.2])
-with col1:
-    st.markdown('<p style="font-family:\'DM Mono\',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:#8a8580;margin-bottom:6px;">Horizon</p>', unsafe_allow_html=True)
-    period_sel = st.selectbox("H", ["7 Days Forecast","14 Days Forecast","30 Days Forecast"],
-                               label_visibility="collapsed",
-                               index=["7 Days Forecast","14 Days Forecast","30 Days Forecast"].index(prediction_period))
-with col2:
-    st.markdown('<p style="font-family:\'DM Mono\',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:#8a8580;margin-bottom:6px;">Fuel grades</p>', unsafe_allow_html=True)
-    fuel_sel = st.multiselect("F", options=all_fuel_types, default=all_fuel_types, label_visibility="collapsed")
-
-# Chart section
-st.markdown(f"""
-<div class="section-heading" style="margin-top:28px;">
-    <span class="section-num">02 —</span>
-    <span class="section-title">Price Trajectory</span>
-    <span class="section-meta">{days_forecast}-Day Stochastic Forecast</span>
-</div>
-""", unsafe_allow_html=True)
-
-if fuel_sel:
-    plot_df = forecast_df[["Date"] + fuel_sel]
+if selected_fuels:
+    plot_df = forecast_df[["Date"] + selected_fuels]
     melted  = plot_df.melt('Date', var_name='Fuel Type', value_name='Price')
 
     color_scale = alt.Scale(
@@ -818,96 +679,114 @@ if fuel_sel:
                 "95 RON (XCS / V-Power / Platinum)",
                 "97+ RON (Blaze 100 / Racing)",
                 "Diesel (Turbo / Max / Power)"],
-        range=['#16a34a','#2563eb','#7c3aed','#c8450a']
+        range=['#34c759','#007aff','#af52de','#ff9500']
     )
 
     chart = (
         alt.Chart(melted)
-        .mark_line(point=alt.OverlayMarkDef(size=40, filled=True), strokeWidth=1.8)
+        .mark_line(point=alt.OverlayMarkDef(size=45, filled=True), strokeWidth=2)
         .encode(
             x=alt.X('Date:N', sort=None, title=None,
-                     axis=alt.Axis(grid=False, labelColor='#8a8580', labelFont='DM Mono',
-                                   tickColor='#d4cfc6', domainColor='#d4cfc6', labelFontSize=10)),
-            y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='₱ / Litre',
-                     axis=alt.Axis(grid=True, gridColor='#ede9e1', gridDash=[4,4],
-                                   labelColor='#8a8580', titleColor='#8a8580',
-                                   labelFont='DM Mono', titleFont='DM Mono',
-                                   labelFontSize=10, titleFontSize=10, domainOpacity=0)),
+                     axis=alt.Axis(grid=False, labelColor='rgba(60,60,67,0.4)',
+                                   labelFont='Inter', tickColor='rgba(60,60,67,0.1)',
+                                   domainColor='rgba(60,60,67,0.1)', labelFontSize=11)),
+            y=alt.Y('Price:Q', scale=alt.Scale(zero=False), title='₱ per Litre',
+                     axis=alt.Axis(grid=True, gridColor='rgba(60,60,67,0.06)',
+                                   labelColor='rgba(60,60,67,0.4)', titleColor='rgba(60,60,67,0.4)',
+                                   labelFont='Inter', titleFont='Inter',
+                                   labelFontSize=11, titleFontSize=11, domainOpacity=0)),
             color=alt.Color('Fuel Type:N', scale=color_scale,
                              legend=alt.Legend(orient='bottom', title=None,
-                                               labelColor='#444', labelFont='IBM Plex Sans',
-                                               labelFontSize=11, symbolSize=80,
-                                               padding=12, columnPadding=24)),
+                                               labelColor='rgba(60,60,67,0.7)',
+                                               labelFont='Inter', labelFontSize=12,
+                                               symbolSize=80, padding=14, columnPadding=20)),
             tooltip=['Date','Fuel Type','Price']
         )
-        .properties(height=360, background='#ffffff', padding={"left":12,"right":12,"top":12,"bottom":8})
-        .configure_view(strokeWidth=0)
+        .properties(height=360, background='#ffffff',
+                    padding={"left":16,"right":16,"top":16,"bottom":8})
+        .configure_view(strokeWidth=0, cornerRadius=14)
         .configure_axis(domain=False)
     )
 
-    st.markdown('<div class="chart-container">', unsafe_allow_html=True)
     st.altair_chart(chart, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 else:
-    st.info("Select at least one fuel grade to render the chart.")
+    st.info("Select at least one fuel type to display the chart.")
 
-# Data table
-st.markdown("""
-<div class="section-heading">
-    <span class="section-num">03 —</span>
-    <span class="section-title">Forecast Table</span>
+# ── Model Stats row ───────────────────────────────────────────────────────────
+bar_w = min(dynamic_accuracy, 100)
+if bias > 0.003:   sentiment_str, sentiment_color = "Bullish", "#248a3d"
+elif bias < -0.003: sentiment_str, sentiment_color = "Bearish", "#c0392b"
+else:               sentiment_str, sentiment_color = "Neutral", "rgba(60,60,67,0.4)"
+
+st.markdown(f"""
+<div class="stat-inline-row">
+    <div class="stat-inline-chip">
+        <div class="stat-inline-label">Confidence</div>
+        <div class="stat-inline-value">{dynamic_accuracy}%</div>
+        <div class="confidence-track">
+            <div class="confidence-thumb" style="width:{bar_w}%"></div>
+        </div>
+        <div class="stat-inline-sub">{days_forecast}-day horizon</div>
+    </div>
+    <div class="stat-inline-chip">
+        <div class="stat-inline-label">Market Signal</div>
+        <div class="stat-inline-value" style="color:{sentiment_color};">{sentiment_str}</div>
+        <div class="stat-inline-sub">Based on news NLP</div>
+    </div>
+    <div class="stat-inline-chip">
+        <div class="stat-inline-label">Model</div>
+        <div class="stat-inline-value" style="font-size:16px; font-weight:600; letter-spacing:-0.2px;">MLR + RW</div>
+        <div class="stat-inline-sub">Brent Crude · USD/PHP</div>
+    </div>
+    <div class="stat-inline-chip">
+        <div class="stat-inline-label">Data Refresh</div>
+        <div class="stat-inline-value" style="font-size:16px; font-weight:600; letter-spacing:-0.2px;">5 min</div>
+        <div class="stat-inline-sub">Via FRED API</div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-if fuel_sel:
-    st.dataframe(forecast_df[["Date"] + fuel_sel], hide_index=True, use_container_width=True, height=220)
+# ── Forecast Table ────────────────────────────────────────────────────────────
+if selected_fuels:
+    st.markdown('<div class="section-header">Forecast Table</div>', unsafe_allow_html=True)
+    st.dataframe(forecast_df[["Date"] + selected_fuels], hide_index=True, use_container_width=True, height=220)
 
-# News section
-st.markdown("""
-<div class="section-heading" style="margin-top:36px;">
-    <span class="section-num">04 —</span>
-    <span class="section-title">Market Intelligence</span>
-</div>
-""", unsafe_allow_html=True)
+# ── News ──────────────────────────────────────────────────────────────────────
+st.markdown('<div class="section-header" style="margin-top:8px;">Market News</div>', unsafe_allow_html=True)
 
-news_html = '<div class="news-columns">'
-for i, art in enumerate(ph_news):
+news_html = '<div class="news-grid">'
+for art in ph_news:
     news_html += f"""
-    <div class="news-col">
-        <div class="news-col-index">Dispatch {i+1:02d} · {art['source'].upper()}</div>
-        <div class="news-col-title">{art['title']}</div>
-        <div class="news-col-body">{art['description']}</div>
-        <a href="{art['url']}" target="_blank" class="news-col-link">Access Source ↗</a>
+    <div class="news-card">
+        <div class="news-source-tag">{art['source']}</div>
+        <div class="news-title">{art['title']}</div>
+        <div class="news-body">{art['description']}</div>
+        <a href="{art['url']}" target="_blank" class="news-link">Read more →</a>
     </div>"""
 news_html += '</div>'
 st.markdown(news_html, unsafe_allow_html=True)
 
-# Expanders
-st.markdown('<div style="margin-top:8px;">', unsafe_allow_html=True)
-with st.expander("Methodology & Data Integrity Statement"):
+# ── Expanders ─────────────────────────────────────────────────────────────────
+with st.expander("Methodology"):
     st.markdown("""
-**I. Data Acquisition.** Live macroeconomic data is pulled from the Federal Reserve Economic Data (FRED) API on a 5-minute cycle — covering global Brent Crude spot prices and the USD/PHP exchange rate index.
+**Data.** Live Brent Crude and USD/PHP rates are fetched from the Federal Reserve Economic Data (FRED) API every 5 minutes.
 
-**II. Price Estimation.** Retail price estimates are computed via a Multiple Linear Regression model calibrated on the historical correlation between international benchmark indices and domestic pump prices.
+**Price Estimation.** A Multiple Linear Regression model maps international indices to domestic pump prices using historical calibration data.
 
-**III. Forecast Simulation.** A sentiment-adjusted Stochastic Random Walk, informed by NLP analysis of domestic petroleum news (NewsData.io), projects the forward price trajectory over the selected forecast horizon.
+**Forecast.** A Stochastic Random Walk, biased by an NLP sentiment score derived from domestic oil news, simulates forward price trajectories.
     """)
 
 with st.expander("Fuel Grade Definitions"):
     st.markdown("""
-- **91 RON (Regular):** Standard unleaded gasoline — Petron Xtra Advance, Shell FuelSave, Caltex Silver.
-- **95 RON (Premium):** Higher-octane formulation — Petron XCS, Shell V-Power, Caltex Platinum.
-- **97+ RON (Ultra):** Maximum-performance gasoline for high-compression engines — Petron Blaze 100, Seaoil Extreme 97.
-- **Diesel:** Automotive gas oil for conventional diesel engines — Petron Turbo Diesel, Shell V-Power Diesel, Caltex Power Diesel.
+- **91 RON** — Standard unleaded. Petron Xtra Advance, Shell FuelSave, Caltex Silver.
+- **95 RON** — Higher-octane premium. Petron XCS, Shell V-Power, Caltex Platinum.
+- **97+ RON** — Performance ultra. Petron Blaze 100, Seaoil Extreme 97.
+- **Diesel** — Automotive gas oil. Petron Turbo, Shell V-Power Diesel, Caltex Power Diesel.
     """)
-st.markdown('</div>', unsafe_allow_html=True)
 
-# Footer
+# ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div class="page-footer">
-    Developed by Ignacio L. &amp; Andrei B. &nbsp;·&nbsp; &copy; {datetime.now().year} &nbsp;·&nbsp; Data: FRED API · NewsData.io
+    Developed by Ignacio L. and Andrei B. · © {datetime.now().year}
 </div>
 """, unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)  # close main-content
-st.markdown('</div>', unsafe_allow_html=True)  # close layout-wrapper
